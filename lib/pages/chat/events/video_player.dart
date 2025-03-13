@@ -121,7 +121,7 @@ class EventVideoPlayerState extends State<EventVideoPlayer> {
     final chewieManager = _chewieManager;
     return Column(
       mainAxisSize: MainAxisSize.min,
-      spacing: 8,
+      // spacing: 8,
       children: [
         Material(
           color: Colors.black,

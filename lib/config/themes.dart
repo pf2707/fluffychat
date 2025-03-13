@@ -61,8 +61,10 @@ abstract class FluffyThemes {
       ),
       segmentedButtonTheme: SegmentedButtonThemeData(
         style: SegmentedButton.styleFrom(
-          iconColor: colorScheme.onSurface,
-          disabledIconColor: colorScheme.onSurface,
+          // iconColor: colorScheme.onSurface,
+          // disabledIconColor: colorScheme.onSurface,
+          selectedForegroundColor: colorScheme.onSurface,
+          foregroundColor: colorScheme.onSurface
         ),
       ),
       textSelectionTheme: TextSelectionThemeData(

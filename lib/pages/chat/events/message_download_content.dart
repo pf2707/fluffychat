@@ -34,7 +34,7 @@ class MessageDownloadContent extends StatelessWidget {
     final fileDescription = event.fileDescription;
     return Column(
       mainAxisSize: MainAxisSize.min,
-      spacing: 8,
+      // spacing: 8,
       children: [
         InkWell(
           onTap: () => event.saveFile(context),
