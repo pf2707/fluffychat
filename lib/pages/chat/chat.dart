@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:io';
 
+import 'package:fluffychat/pages/chat/send_image_screen.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -96,6 +97,61 @@ class ChatPageWithRoom extends StatefulWidget {
   ChatController createState() => ChatController();
 }
 
+
+enum EnumFunctionTool {
+  camera,
+  photo,
+  document,
+  contact,
+  location,
+  audio
+  ;
+
+  String title() {
+    switch (this) {
+      case EnumFunctionTool.camera: return "Camera";
+      case EnumFunctionTool.photo: return "Photo";
+      case EnumFunctionTool.document: return "Document";
+      case EnumFunctionTool.contact: return "Contact";
+      case EnumFunctionTool.location: return "Location";
+      case EnumFunctionTool.audio: return "Audio";
+    }
+  }
+
+  String icon() {
+    switch (this) {
+      case EnumFunctionTool.camera: return "ic_tool_camera.svg";
+      case EnumFunctionTool.photo: return "ic_tool_photo_library.svg";
+      case EnumFunctionTool.document: return "ic_tool_document.svg";
+      case EnumFunctionTool.contact: return "ic_tool_contact.svg";
+      case EnumFunctionTool.location: return "ic_tool_location.svg";
+      case EnumFunctionTool.audio: return "ic_tool_audio.svg";
+    }
+  }
+
+  Color backgroundColor() {
+    switch (this) {
+      case EnumFunctionTool.camera: return const Color(0xFFD4F3FC);
+      case EnumFunctionTool.photo: return const Color(0xFFDAE4FE);
+      case EnumFunctionTool.document: return const Color(0xFFF0F2B8);
+      case EnumFunctionTool.contact: return const Color(0xFFF8D9C8);
+      case EnumFunctionTool.location: return const Color(0xFFE1FAE8);
+      case EnumFunctionTool.audio: return const Color(0xFFF4DAEE);
+    }
+  }
+
+  String choice() {
+    switch (this) {
+      case EnumFunctionTool.camera: return "camera";
+      case EnumFunctionTool.photo: return "image";
+      case EnumFunctionTool.document: return "file";
+      case EnumFunctionTool.contact: return "contact";
+      case EnumFunctionTool.location: return "location";
+      case EnumFunctionTool.audio: return "audio";
+    }
+  }
+}
+
 class ChatController extends State<ChatPageWithRoom>
     with WidgetsBindingObserver {
   Room get room => sendingClient.getRoomById(roomId) ?? widget.room;
@@ -168,6 +224,16 @@ class ChatController extends State<ChatPageWithRoom>
   String pendingText = '';
 
   bool showEmojiPicker = false;
+  bool showFunctionToolPicker = false;
+
+  final functionTools = [
+    EnumFunctionTool.camera,
+    EnumFunctionTool.photo,
+    EnumFunctionTool.document,
+    EnumFunctionTool.contact,
+    EnumFunctionTool.location,
+    EnumFunctionTool.audio,
+  ];
 
   void recreateChat() async {
     final room = this.room;
@@ -549,11 +615,19 @@ class ChatController extends State<ChatPageWithRoom>
     if (files.isEmpty) return;
     await showAdaptiveDialog(
       context: context,
-      builder: (c) => SendFileDialog(
-        files: files,
-        room: room,
-        outerContext: context,
-      ),
+      builder: (c) => SizedBox(
+        width: double.infinity, height: double.infinity,
+        child: SendImageScreen(
+          files: files,
+          room: room,
+          outerContext: context,
+        ),
+      )
+      // builder: (c) => SendFileDialog(
+      //   files: files,
+      //   room: room,
+      //   outerContext: context,
+      // ),
     );
   }
 
@@ -664,6 +738,10 @@ class ChatController extends State<ChatPageWithRoom>
     setState(() => showEmojiPicker = false);
   }
 
+  void hideFunctionToolPicker() {
+    setState(() => showFunctionToolPicker = false);
+  }
+
   void emojiPickerAction() {
     if (showEmojiPicker) {
       inputFocus.requestFocus();
@@ -671,7 +749,22 @@ class ChatController extends State<ChatPageWithRoom>
       inputFocus.unfocus();
     }
     emojiPickerType = EmojiPickerType.keyboard;
-    setState(() => showEmojiPicker = !showEmojiPicker);
+    setState(() {
+      showFunctionToolPicker = false;
+      showEmojiPicker = !showEmojiPicker;
+    });
+  }
+
+  void functionToolPickerAction() {
+    if (showFunctionToolPicker) {
+      inputFocus.requestFocus();
+    } else {
+      inputFocus.unfocus();
+    }
+    setState(() {
+      showEmojiPicker = false;
+      showFunctionToolPicker = !showFunctionToolPicker;
+    });
   }
 
   void _inputFocusListener() {

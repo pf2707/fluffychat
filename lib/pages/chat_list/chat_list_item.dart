@@ -80,11 +80,11 @@ class ChatListItem extends StatelessWidget {
     final hasNotifications = room.notificationCount > 0;
     final backgroundColor =
         activeChat ? theme.colorScheme.secondaryContainer : null;
-    final displayname = room.getLocalizedDisplayname(
+    final displayName = room.getLocalizedDisplayname(
       MatrixLocals(L10n.of(context)),
     );
     final filter = this.filter;
-    if (filter != null && !displayname.toLowerCase().contains(filter)) {
+    if (filter != null && !displayName.toLowerCase().contains(filter)) {
       return const SizedBox.shrink();
     }
 
@@ -99,14 +99,14 @@ class ChatListItem extends StatelessWidget {
         vertical: 1,
       ),
       child: Material(
-        borderRadius: BorderRadius.circular(AppConfig.borderRadius),
+        borderRadius: BorderRadius.circular(30 /*AppConfig.borderRadius*/),
         clipBehavior: Clip.hardEdge,
         color: backgroundColor,
         child: FutureBuilder(
           future: room.loadHeroUsers(),
           builder: (context, snapshot) => HoverBuilder(
             builder: (context, listTileHovered) => ListTile(
-              visualDensity: const VisualDensity(vertical: -0.5),
+              visualDensity: const VisualDensity(vertical: 2),
               contentPadding: const EdgeInsets.symmetric(horizontal: 8),
               onLongPress: () => onLongPress?.call(context),
               leading: HoverBuilder(
@@ -130,10 +130,10 @@ class ChatListItem extends StatelessWidget {
                                     theme.colorScheme.surface,
                               ),
                               borderRadius: BorderRadius.circular(
-                                AppConfig.borderRadius / 4,
+                                30,
                               ),
                               mxContent: space.avatar,
-                              size: Avatar.defaultSize * 0.75,
+                              size: 60,
                               name: space.getLocalizedDisplayname(),
                               onTap: () => onLongPress?.call(context),
                             ),
@@ -156,14 +156,16 @@ class ChatListItem extends StatelessWidget {
                                   ),
                             borderRadius: room.isSpace
                                 ? BorderRadius.circular(
-                                    AppConfig.borderRadius / 4,
+                                    30
+                                    // AppConfig.borderRadius / 4,
                                   )
                                 : null,
                             mxContent: room.avatar,
-                            size: space != null
-                                ? Avatar.defaultSize * 0.75
-                                : Avatar.defaultSize,
-                            name: displayname,
+                            size: 60,
+                            // size: space != null
+                            //     ? Avatar.defaultSize * 0.75
+                            //     : Avatar.defaultSize,
+                            name: displayName,
                             presenceUserId: directChatMatrixId,
                             presenceBackgroundColor: backgroundColor,
                             onTap: () => onLongPress?.call(context),
@@ -198,14 +200,16 @@ class ChatListItem extends StatelessWidget {
                 children: <Widget>[
                   Expanded(
                     child: Text(
-                      displayname,
+                      displayName,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       softWrap: false,
-                      style: TextStyle(
-                        fontWeight: unread || room.hasNewMessages
-                            ? FontWeight.w500
-                            : null,
+                      style: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w500
+                        // fontWeight: unread || room.hasNewMessages
+                        //     ? FontWeight.w500
+                        //     : null,
                       ),
                     ),
                   ),
@@ -334,9 +338,10 @@ class ChatListItem extends StatelessWidget {
                                   maxLines: room.notificationCount >= 1 ? 2 : 1,
                                   overflow: TextOverflow.ellipsis,
                                   style: TextStyle(
-                                    color: unread || room.hasNewMessages
-                                        ? theme.colorScheme.onSurface
-                                        : theme.colorScheme.outline,
+                                    color: const Color(0xFF626167),
+                                    // color: unread || room.hasNewMessages
+                                    //     ? theme.colorScheme.onSurface
+                                    //     : theme.colorScheme.outline,
                                     decoration: room.lastEvent?.redacted == true
                                         ? TextDecoration.lineThrough
                                         : null,
@@ -363,7 +368,7 @@ class ChatListItem extends StatelessWidget {
                           : hasNotifications || room.markedUnread
                               ? theme.colorScheme.primary
                               : theme.colorScheme.primaryContainer,
-                      borderRadius: BorderRadius.circular(7),
+                      borderRadius: BorderRadius.circular(10),
                     ),
                     child: hasNotifications
                         ? Text(
@@ -375,7 +380,7 @@ class ChatListItem extends StatelessWidget {
                                   : hasNotifications
                                       ? theme.colorScheme.onPrimary
                                       : theme.colorScheme.onPrimaryContainer,
-                              fontSize: 13,
+                              fontSize: 14,
                               fontWeight: FontWeight.w500,
                             ),
                             textAlign: TextAlign.center,

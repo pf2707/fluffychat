@@ -1,5 +1,6 @@
 import 'dart:ui' as ui;
 
+import 'package:fluffychat/pages/chat/events/custom/multiple_images_impl.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
@@ -126,11 +127,11 @@ class Message extends StatelessWidget {
         ownMessage ? MainAxisAlignment.end : MainAxisAlignment.start;
 
     final displayEvent = event.getDisplayEvent(timeline);
-    const hardCorner = Radius.circular(4);
+    const hardCorner = Radius.circular(2);
     const roundedCorner = Radius.circular(AppConfig.borderRadius);
     final borderRadius = BorderRadius.only(
-      topLeft: !ownMessage && nextEventSameSender ? hardCorner : roundedCorner,
-      topRight: ownMessage && nextEventSameSender ? hardCorner : roundedCorner,
+      topLeft: !ownMessage ? hardCorner : roundedCorner, //!ownMessage && nextEventSameSender ? hardCorner : roundedCorner,
+      topRight: ownMessage ? hardCorner : roundedCorner, //ownMessage && nextEventSameSender ? hardCorner : roundedCorner,
       bottomLeft:
           !ownMessage && previousEventSameSender ? hardCorner : roundedCorner,
       bottomRight:
@@ -138,7 +139,7 @@ class Message extends StatelessWidget {
     );
     final noBubble = ({
               MessageTypes.Video,
-              MessageTypes.Image,
+              // MessageTypes.Image,
               MessageTypes.Sticker,
             }.contains(event.messageType) &&
             event.fileDescription == null &&
@@ -147,11 +148,24 @@ class Message extends StatelessWidget {
             event.relationshipType == null &&
             event.onlyEmotes &&
             event.numberEmotes > 0 &&
-            event.numberEmotes <= 3);
+            event.numberEmotes <= 3) ||
+        (event.messageType == MessageTypesExt.Images && !MultipleImagesImpl.hasCaption(event));
     final noPadding = {
       MessageTypes.File,
       MessageTypes.Audio,
+      MessageTypesExt.Images,
     }.contains(event.messageType);
+
+    final smallPadding = {
+      MessageTypes.Image,
+      MessageTypes.Location
+    }.contains(event.messageType);
+    final contentPadding = smallPadding ?
+      const EdgeInsets.all(4) :
+      const EdgeInsets.symmetric(
+        horizontal: 16,
+        vertical: 8,
+      );
 
     if (ownMessage) {
       color =
@@ -212,7 +226,7 @@ class Message extends StatelessWidget {
                               onChanged: (_) => onSelect(event),
                             ),
                           )
-                        else if (nextEventSameSender || ownMessage)
+                        else if ((nextEventSameSender && !event.room.isDirectChat) || ownMessage)
                           SizedBox(
                             width: Avatar.defaultSize,
                             child: Center(
@@ -230,7 +244,7 @@ class Message extends StatelessWidget {
                               ),
                             ),
                           )
-                        else
+                        else if (!event.room.isDirectChat)
                           FutureBuilder<User?>(
                             future: event.fetchSenderUser(),
                             builder: (context, snapshot) {
@@ -335,10 +349,7 @@ class Message extends StatelessWidget {
                                           ),
                                           padding: noBubble || noPadding
                                               ? EdgeInsets.zero
-                                              : const EdgeInsets.symmetric(
-                                                  horizontal: 16,
-                                                  vertical: 8,
-                                                ),
+                                              : contentPadding,
                                           constraints: const BoxConstraints(
                                             maxWidth:
                                                 FluffyThemes.columnWidth * 1.5,

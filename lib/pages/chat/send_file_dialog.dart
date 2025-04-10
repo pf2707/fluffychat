@@ -1,3 +1,4 @@
+import 'package:fluffychat/utils/common_extension.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
@@ -53,65 +54,42 @@ class SendFileDialogState extends State<SendFileDialog> {
       final clientConfig = await widget.room.client.getConfig();
       final maxUploadSize = clientConfig.mUploadSize ?? 100 * 1000 * 1000;
 
-      for (final xfile in widget.files) {
-        final MatrixFile file;
-        MatrixImageFile? thumbnail;
-        final length = await xfile.length();
-        final mimeType = xfile.mimeType ?? lookupMimeType(xfile.path);
+      final uniqueFileType = widget.files
+          .map((file) => file.mimeType ?? lookupMimeType(file.name))
+          .map((mimeType) => mimeType?.split('/').first)
+          .toSet()
+          .singleOrNull;
+      if (uniqueFileType == 'image' && widget.files.length > 1) {
+        final urls = <String>[];
 
-        // If file is a video, shrink it!
-        if (PlatformInfos.isMobile &&
-            mimeType != null &&
-            mimeType.startsWith('video') &&
-            length > minSizeToCompress &&
-            compress) {
-          scaffoldMessenger.showLoadingSnackBar(l10n.compressVideo);
-          file = await xfile.resizeVideo();
-          scaffoldMessenger.showLoadingSnackBar(l10n.generatingVideoThumbnail);
-          thumbnail = await xfile.getVideoThumbnail();
-        } else {
-          if (length > maxUploadSize) {
-            throw FileTooBigMatrixException(length, maxUploadSize);
+        await Future.forEach(widget.files, (xFile) async {
+          final data = await xFile.readAsBytes();
+          if (data.length < maxUploadSize) {
+            final uri = await widget.room.client.uploadContent(data);
+            final url = uri.path;
+            urls.add(url);
           }
-          // Else we just create a MatrixFile
-          file = MatrixFile(
-            bytes: await xfile.readAsBytes(),
-            name: xfile.name,
-            mimeType: mimeType,
-          ).detectFileType;
-        }
+        });
 
-        if (file.bytes.length > maxUploadSize) {
-          throw FileTooBigMatrixException(length, maxUploadSize);
-        }
-
-        if (widget.files.length > 1) {
-          scaffoldMessenger.showLoadingSnackBar(
-            l10n.sendingAttachmentCountOfCount(
-              widget.files.indexOf(xfile) + 1,
-              widget.files.length,
-            ),
-          );
-        } else {
-          scaffoldMessenger.clearSnackBars();
-        }
-
+        // Send the message with multiple image mxc URLs
         final label = _labelTextController.text.trim();
+        final messageContent = {
+          "caption": label,
+          "images": urls.map((url) => {"url": url}).toList(),
+        };
 
         try {
-          await widget.room.sendFileEvent(
-            file,
-            thumbnail: thumbnail,
-            shrinkImageMaxDimension: compress ? 1600 : null,
-            extraContent: label.isEmpty ? null : {'body': label},
+          scaffoldMessenger.showLoadingSnackBar(
+            l10n.sendingAttachment,
           );
+          await widget.room.sendEvent(messageContent);
         } on MatrixException catch (e) {
           final retryAfterMs = e.retryAfterMs;
           if (e.error != MatrixError.M_LIMIT_EXCEEDED || retryAfterMs == null) {
             rethrow;
           }
           final retryAfterDuration =
-              Duration(milliseconds: retryAfterMs + 1000);
+          Duration(milliseconds: retryAfterMs + 1000);
 
           scaffoldMessenger.showSnackBar(
             SnackBar(
@@ -123,15 +101,90 @@ class SendFileDialogState extends State<SendFileDialog> {
           await Future.delayed(retryAfterDuration);
 
           scaffoldMessenger.showLoadingSnackBar(l10n.sendingAttachment);
+          await widget.room.sendEvent(messageContent);
+        }
+      } else {
+        for (final xFile in widget.files) {
+          final MatrixFile file;
+          MatrixImageFile? thumbnail;
+          final length = await xFile.length();
+          final mimeType = xFile.mimeType ?? lookupMimeType(xFile.path);
 
-          await widget.room.sendFileEvent(
-            file,
-            thumbnail: thumbnail,
-            shrinkImageMaxDimension: compress ? 1600 : null,
-            extraContent: label.isEmpty ? null : {'body': label},
-          );
+          // If file is a video, shrink it!
+          if (PlatformInfos.isMobile &&
+              mimeType != null &&
+              mimeType.startsWith('video') &&
+              length > minSizeToCompress &&
+              compress) {
+            scaffoldMessenger.showLoadingSnackBar(l10n.compressVideo);
+            file = await xFile.resizeVideo();
+            scaffoldMessenger.showLoadingSnackBar(l10n.generatingVideoThumbnail);
+            thumbnail = await xFile.getVideoThumbnail();
+          } else {
+            if (length > maxUploadSize) {
+              throw FileTooBigMatrixException(length, maxUploadSize);
+            }
+            // Else we just create a MatrixFile
+            file = MatrixFile(
+              bytes: await xFile.readAsBytes(),
+              name: xFile.name,
+              mimeType: mimeType,
+            ).detectFileType;
+          }
+
+          if (file.bytes.length > maxUploadSize) {
+            throw FileTooBigMatrixException(length, maxUploadSize);
+          }
+
+          if (widget.files.length > 1) {
+            scaffoldMessenger.showLoadingSnackBar(
+              l10n.sendingAttachmentCountOfCount(
+                widget.files.indexOf(xFile) + 1,
+                widget.files.length,
+              ),
+            );
+          } else {
+            scaffoldMessenger.clearSnackBars();
+          }
+
+          final label = _labelTextController.text.trim();
+
+          try {
+            await widget.room.sendFileEvent(
+              file,
+              thumbnail: thumbnail,
+              shrinkImageMaxDimension: compress ? 1600 : null,
+              extraContent: label.isEmpty ? null : {'body': label},
+            );
+          } on MatrixException catch (e) {
+            final retryAfterMs = e.retryAfterMs;
+            if (e.error != MatrixError.M_LIMIT_EXCEEDED || retryAfterMs == null) {
+              rethrow;
+            }
+            final retryAfterDuration =
+            Duration(milliseconds: retryAfterMs + 1000);
+
+            scaffoldMessenger.showSnackBar(
+              SnackBar(
+                content: Text(
+                  l10n.serverLimitReached(retryAfterDuration.inSeconds),
+                ),
+              ),
+            );
+            await Future.delayed(retryAfterDuration);
+
+            scaffoldMessenger.showLoadingSnackBar(l10n.sendingAttachment);
+
+            await widget.room.sendFileEvent(
+              file,
+              thumbnail: thumbnail,
+              shrinkImageMaxDimension: compress ? 1600 : null,
+              extraContent: label.isEmpty ? null : {'body': label},
+            );
+          }
         }
       }
+
       scaffoldMessenger.clearSnackBars();
     } catch (e) {
       scaffoldMessenger.clearSnackBars();
@@ -403,33 +456,6 @@ class SendFileDialogState extends State<SendFileDialog> {
           ],
         );
       },
-    );
-  }
-}
-
-extension on ScaffoldMessengerState {
-  ScaffoldFeatureController<SnackBar, SnackBarClosedReason> showLoadingSnackBar(
-    String title,
-  ) {
-    clearSnackBars();
-    return showSnackBar(
-      SnackBar(
-        duration: const Duration(minutes: 5),
-        dismissDirection: DismissDirection.none,
-        content: Row(
-          children: [
-            const SizedBox(
-              width: 16,
-              height: 16,
-              child: CircularProgressIndicator.adaptive(
-                strokeWidth: 2,
-              ),
-            ),
-            const SizedBox(width: 16),
-            Text(title),
-          ],
-        ),
-      ),
     );
   }
 }

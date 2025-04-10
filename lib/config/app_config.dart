@@ -65,7 +65,8 @@ abstract class AppConfig {
   static const String pushNotificationsGatewayUrl =
       'https://push.fluffychat.im/_matrix/push/v1/notify';
   static const String pushNotificationsPusherFormat = 'event_id_only';
-  static const double borderRadius = 18.0;
+  static const double borderRadius = 20.0;
+  static const double subBorderRadius = 15.0;
   static const double columnWidth = 360.0;
   static final Uri homeserverList = Uri(
     scheme: 'https',

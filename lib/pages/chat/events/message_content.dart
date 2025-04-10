@@ -1,9 +1,13 @@
 import 'dart:math';
 
+import 'package:fluffychat/pages/chat/events/custom/multiple_images_impl.dart';
+import 'package:fluffychat/pages/chat/events/multiple_images_bubble.dart';
+import 'package:fluffychat/utils/client_download_content_extension.dart';
 import 'package:flutter/material.dart';
 
 import 'package:flutter_gen/gen_l10n/l10n.dart';
 import 'package:flutter_linkify/flutter_linkify.dart';
+import 'package:intl/intl.dart';
 import 'package:matrix/matrix.dart';
 
 import 'package:fluffychat/pages/chat/events/video_player.dart';
@@ -110,6 +114,30 @@ class MessageContent extends StatelessWidget {
       case EventTypes.Encrypted:
       case EventTypes.Sticker:
         switch (event.messageType) {
+          case MessageTypesExt.Images:
+            if (MultipleImagesImpl.hasCaption(event)) {
+              return _timeBelowStyle(
+                event: event,
+                contentWidget: MultipleImagesBubble(
+                  event,
+                  borderRadius: borderRadius,
+                  textColor: textColor,
+                  linkColor: linkColor,
+                ),
+                timeRightPadding: 10,
+                timeBottomPadding: 10
+              );
+            } else {
+              return _timeOnTopStyle(
+                event: event,
+                contentWidget: MultipleImagesBubble(
+                  event,
+                  borderRadius: borderRadius,
+                  textColor: textColor,
+                  linkColor: linkColor,
+                ),
+              );
+            }
           case MessageTypes.Image:
           case MessageTypes.Sticker:
             if (event.redacted) continue textmessage;
@@ -135,14 +163,17 @@ class MessageContent extends StatelessWidget {
                 width = max(32, maxSize * (w / h));
               }
             }
-            return ImageBubble(
-              event,
-              width: width,
-              height: height,
-              fit: fit,
-              borderRadius: borderRadius,
-              timeline: timeline,
-              textColor: textColor,
+            return _timeOnTopStyle(
+              event: event,
+              contentWidget: ImageBubble(
+                event,
+                width: width,
+                height: height,
+                fit: fit,
+                borderRadius: borderRadius,
+                timeline: timeline,
+                textColor: textColor,
+              ),
             );
           case CuteEventContent.eventType:
             return CuteContent(event);
@@ -185,19 +216,22 @@ class MessageContent extends StatelessWidget {
               if (event.messageType == MessageTypes.Emote) {
                 html = '* $html';
               }
-              return HtmlMessage(
-                html: html,
-                textColor: textColor,
-                room: event.room,
-                fontSize: AppConfig.fontSizeFactor * AppConfig.messageFontSize,
-                linkStyle: TextStyle(
-                  color: linkColor,
-                  fontSize:
-                      AppConfig.fontSizeFactor * AppConfig.messageFontSize,
-                  decoration: TextDecoration.underline,
-                  decorationColor: linkColor,
-                ),
-                onOpen: (url) => UrlLauncher(context, url.url).launchUrl(),
+              return _timeBelowStyle(
+                event: event,
+                contentWidget: HtmlMessage(
+                  html: html,
+                  textColor: textColor,
+                  room: event.room,
+                  fontSize: AppConfig.fontSizeFactor * AppConfig.messageFontSize,
+                  linkStyle: TextStyle(
+                    color: linkColor,
+                    fontSize:
+                    AppConfig.fontSizeFactor * AppConfig.messageFontSize,
+                    decoration: TextDecoration.underline,
+                    decorationColor: linkColor,
+                  ),
+                  onOpen: (url) => UrlLauncher(context, url.url).launchUrl(),
+                )
               );
             }
             // else we fall through to the normal message rendering
@@ -224,24 +258,28 @@ class MessageContent extends StatelessWidget {
               if (latlong.length == 2 &&
                   latlong.first != null &&
                   latlong.last != null) {
-                return Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    MapBubble(
-                      latitude: latlong.first!,
-                      longitude: latlong.last!,
-                    ),
-                    const SizedBox(height: 6),
-                    OutlinedButton.icon(
-                      icon: Icon(Icons.location_on_outlined, color: textColor),
-                      onPressed:
-                          UrlLauncher(context, geoUri.toString()).launchUrl,
-                      label: Text(
-                        L10n.of(context).openInMaps,
-                        style: TextStyle(color: textColor),
+                return _timeBelowStyle(
+                  event: event,
+                  contentWidget: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      MapBubble(
+                        latitude: latlong.first!,
+                         longitude: latlong.last!,
                       ),
-                    ),
-                  ],
+                      const SizedBox(height: 6),
+                      // OutlinedButton.icon(
+                      //   icon: Icon(Icons.location_on_outlined, color: textColor),
+                      //   onPressed:
+                      //   UrlLauncher(context, geoUri.toString()).launchUrl,
+                      //   label: Text(
+                      //     L10n.of(context).openInMaps,
+                      //     style: TextStyle(color: textColor),
+                      //   ),
+                      // ),
+                    ],
+                  ),
+                  timeRightPadding: 8,
                 );
               }
             }
@@ -276,25 +314,58 @@ class MessageContent extends StatelessWidget {
             final bigEmotes = event.onlyEmotes &&
                 event.numberEmotes > 0 &&
                 event.numberEmotes <= 3;
-            return Linkify(
-              text: event.calcLocalizedBodyFallback(
-                MatrixLocals(L10n.of(context)),
-                hideReply: true,
+            return _timeBelowStyle(
+              event: event,
+              contentWidget: Linkify(
+                text: event.calcLocalizedBodyFallback(
+                  MatrixLocals(L10n.of(context)),
+                  hideReply: true,
+                ),
+                style: TextStyle(
+                  color: textColor,
+                  fontSize: bigEmotes ? fontSize * 5 : fontSize,
+                  decoration: event.redacted ? TextDecoration.lineThrough : null,
+                ),
+                options: const LinkifyOptions(humanize: false),
+                linkStyle: TextStyle(
+                  color: linkColor,
+                  fontSize: fontSize,
+                  decoration: TextDecoration.underline,
+                  decorationColor: linkColor,
+                ),
+                onOpen: (url) => UrlLauncher(context, url.url).launchUrl(),
               ),
-              style: TextStyle(
-                color: textColor,
-                fontSize: bigEmotes ? fontSize * 5 : fontSize,
-                decoration: event.redacted ? TextDecoration.lineThrough : null,
-              ),
-              options: const LinkifyOptions(humanize: false),
-              linkStyle: TextStyle(
-                color: linkColor,
-                fontSize: fontSize,
-                decoration: TextDecoration.underline,
-                decorationColor: linkColor,
-              ),
-              onOpen: (url) => UrlLauncher(context, url.url).launchUrl(),
             );
+
+            /// Old widget
+            // return Column(
+            //   mainAxisSize: MainAxisSize.min,
+            //   mainAxisAlignment: MainAxisAlignment.start,
+            //   crossAxisAlignment: CrossAxisAlignment.start,
+            //   children: [
+            //     Linkify(
+            //       text: event.calcLocalizedBodyFallback(
+            //         MatrixLocals(L10n.of(context)),
+            //         hideReply: true,
+            //       ),
+            //       style: TextStyle(
+            //         color: textColor,
+            //         fontSize: bigEmotes ? fontSize * 5 : fontSize,
+            //         decoration: event.redacted ? TextDecoration.lineThrough : null,
+            //       ),
+            //       options: const LinkifyOptions(humanize: false),
+            //       linkStyle: TextStyle(
+            //         color: linkColor,
+            //         fontSize: fontSize,
+            //         decoration: TextDecoration.underline,
+            //         decorationColor: linkColor,
+            //       ),
+            //       onOpen: (url) => UrlLauncher(context, url.url).launchUrl(),
+            //     ),
+            //
+            //     _timeWidget(event),
+            //   ],
+            // );
         }
       case EventTypes.CallInvite:
         return FutureBuilder<User?>(
@@ -330,6 +401,59 @@ class MessageContent extends StatelessWidget {
           },
         );
     }
+  }
+
+  _timeBelowStyle({required Event event, required Widget contentWidget, double? timeRightPadding, double? timeBottomPadding}) {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      mainAxisAlignment: MainAxisAlignment.start,
+      crossAxisAlignment: CrossAxisAlignment.end,
+      children: [
+        contentWidget,
+
+        _timeWidget(event, timeRightPadding: timeRightPadding, timeBottomPadding: timeBottomPadding),
+      ],
+    );
+  }
+
+  _timeOnTopStyle({required Event event, required Widget contentWidget}) {
+    return Stack(
+      children: [
+        contentWidget,
+
+        Positioned(
+          left: 0, right: 0, bottom: 0, height: 32,
+          child: Container(
+            width: double.infinity, height: double.infinity,
+            decoration: BoxDecoration(
+              borderRadius: borderRadius,
+              gradient: LinearGradient(
+                colors: [const Color(0x00D9D9D9), Colors.black.withOpacity(0.3)],
+                stops: const [0, 1],
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+              ),
+            ),
+          ),
+        ),
+
+        Positioned(
+          right: 16, bottom: 6,
+          child: _timeWidget(event, textColor: Colors.white),
+        ),
+      ],
+    );
+  }
+
+  _timeWidget(Event event, {Color? textColor, double? timeRightPadding, double? timeBottomPadding}) {
+    final time = DateFormat("HH:mm").format(event.originServerTs);
+    return Padding(
+      padding: EdgeInsets.only(right: timeRightPadding ?? 0.0, bottom: timeBottomPadding ?? 0.0),
+      child: Text(
+        time,
+        style: TextStyle(fontSize: 10, color: textColor ?? const Color(0xFFB1CAFF)),
+      ),
+    );
   }
 }
 

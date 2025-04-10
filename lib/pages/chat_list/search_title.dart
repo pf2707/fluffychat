@@ -21,16 +21,16 @@ class SearchTitle extends StatelessWidget {
     final theme = Theme.of(context);
 
     return Material(
-      shape: Border(
-        top: BorderSide(
-          color: theme.dividerColor,
-          width: 1,
-        ),
-        bottom: BorderSide(
-          color: theme.dividerColor,
-          width: 1,
-        ),
-      ),
+      // shape: Border(
+      //   top: BorderSide(
+      //     color: theme.dividerColor,
+      //     width: 1,
+      //   ),
+      //   bottom: BorderSide(
+      //     color: theme.dividerColor,
+      //     width: 1,
+      //   ),
+      // ),
       color: color ?? theme.colorScheme.surface,
       child: InkWell(
         onTap: onTap,
@@ -46,15 +46,15 @@ class SearchTitle extends StatelessWidget {
               data: theme.iconTheme.copyWith(size: 16),
               child: Row(
                 children: [
-                  icon,
-                  const SizedBox(width: 16),
+                  // icon,
+                  // const SizedBox(width: 16),
                   Text(
                     title,
                     textAlign: TextAlign.left,
                     style: TextStyle(
-                      color: theme.colorScheme.onSurface,
-                      fontSize: 12,
-                      fontWeight: FontWeight.bold,
+                      color: theme.colorScheme.primary,
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
                     ),
                   ),
                   if (trailing != null)

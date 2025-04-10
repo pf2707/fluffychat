@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'package:flutter_gen/gen_l10n/l10n.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:matrix/matrix.dart';
 
 import 'package:fluffychat/config/themes.dart';
@@ -31,73 +32,80 @@ class ChatListHeader extends StatelessWidget implements PreferredSizeWidget {
       scrolledUnderElevation: 0,
       backgroundColor: Colors.transparent,
       automaticallyImplyLeading: false,
-      title: StreamBuilder(
-        stream: client.onSyncStatus.stream,
-        builder: (context, snapshot) {
-          final status = client.onSyncStatus.value ??
-              const SyncStatusUpdate(SyncStatus.waitingForResponse);
-          final hide = client.onSync.value != null &&
-              status.status != SyncStatus.error &&
-              client.prevBatch != null;
-          return TextField(
-            controller: controller.searchController,
-            focusNode: controller.searchFocusNode,
-            textInputAction: TextInputAction.search,
-            onChanged: (text) => controller.onSearchEnter(
-              text,
-              globalSearch: globalSearch,
-            ),
-            decoration: InputDecoration(
-              filled: true,
-              fillColor: theme.colorScheme.secondaryContainer,
-              border: OutlineInputBorder(
-                borderSide: BorderSide.none,
-                borderRadius: BorderRadius.circular(99),
-              ),
-              contentPadding: EdgeInsets.zero,
-              hintText: hide
-                  ? L10n.of(context).searchChatsRooms
-                  : status.calcLocalizedString(context),
-              hintStyle: TextStyle(
-                color: status.error != null
-                    ? theme.colorScheme.error
-                    : theme.colorScheme.onPrimaryContainer,
-                fontWeight: FontWeight.normal,
-              ),
-              prefixIcon: hide
-                  ? controller.isSearchMode
-                      ? IconButton(
+      title: Row(
+        children: [
+          SvgPicture.asset('assets/svg/logo.svg'),
+          const SizedBox(width: 10),
+          Expanded(
+            child: StreamBuilder(
+              stream: client.onSyncStatus.stream,
+              builder: (context, snapshot) {
+                final status = client.onSyncStatus.value ??
+                    const SyncStatusUpdate(SyncStatus.waitingForResponse);
+                final hide = client.onSync.value != null &&
+                    status.status != SyncStatus.error &&
+                    client.prevBatch != null;
+                return SizedBox(
+                  height: 40,
+                  child: TextField(
+                    controller: controller.searchController,
+                    focusNode: controller.searchFocusNode,
+                    textInputAction: TextInputAction.search,
+                    onChanged: (text) => controller.onSearchEnter(
+                      text,
+                      globalSearch: globalSearch,
+                    ),
+                    decoration: InputDecoration(
+                        filled: true,
+                        fillColor: theme.colorScheme.secondaryContainer,
+                        border: OutlineInputBorder(
+                          borderSide: BorderSide.none,
+                          borderRadius: BorderRadius.circular(99),
+                        ),
+                        contentPadding: EdgeInsets.zero,
+                        hintText: hide
+                            ? L10n.of(context).searchChatsRooms
+                            : status.calcLocalizedString(context),
+                        hintStyle: TextStyle(
+                          color: status.error != null
+                              ? theme.colorScheme.error
+                              : theme.colorScheme.onPrimaryContainer,
+                          fontWeight: FontWeight.normal,
+                        ),
+                        prefixIcon: hide
+                            ? controller.isSearchMode
+                            ? IconButton(
                           tooltip: L10n.of(context).cancel,
                           icon: const Icon(Icons.close_outlined),
                           onPressed: controller.cancelSearch,
                           color: theme.colorScheme.onPrimaryContainer,
                         )
-                      : IconButton(
+                            : IconButton(
                           onPressed: controller.startSearch,
                           icon: Icon(
                             Icons.search_outlined,
                             color: theme.colorScheme.onPrimaryContainer,
                           ),
                         )
-                  : Container(
-                      margin: const EdgeInsets.all(12),
-                      width: 8,
-                      height: 8,
-                      child: Center(
-                        child: CircularProgressIndicator.adaptive(
-                          strokeWidth: 2,
-                          value: status.progress,
-                          valueColor: status.error != null
-                              ? AlwaysStoppedAnimation<Color>(
-                                  theme.colorScheme.error,
-                                )
-                              : null,
+                            : Container(
+                          margin: const EdgeInsets.all(12),
+                          width: 8,
+                          height: 8,
+                          child: Center(
+                            child: CircularProgressIndicator.adaptive(
+                              strokeWidth: 2,
+                              value: status.progress,
+                              valueColor: status.error != null
+                                  ? AlwaysStoppedAnimation<Color>(
+                                theme.colorScheme.error,
+                              )
+                                  : null,
+                            ),
+                          ),
                         ),
-                      ),
-                    ),
-              suffixIcon: controller.isSearchMode && globalSearch
-                  ? controller.isSearching
-                      ? const Padding(
+                        suffixIcon: controller.isSearchMode && globalSearch
+                            ? controller.isSearching
+                            ? const Padding(
                           padding: EdgeInsets.symmetric(
                             vertical: 10.0,
                             horizontal: 12,
@@ -109,7 +117,7 @@ class ChatListHeader extends StatelessWidget implements PreferredSizeWidget {
                             ),
                           ),
                         )
-                      : TextButton.icon(
+                            : TextButton.icon(
                           onPressed: controller.setServer,
                           style: TextButton.styleFrom(
                             shape: RoundedRectangleBorder(
@@ -124,14 +132,44 @@ class ChatListHeader extends StatelessWidget implements PreferredSizeWidget {
                             maxLines: 2,
                           ),
                         )
-                  : SizedBox(
-                      width: 0,
-                      child: ClientChooserButton(controller),
+                            : const SizedBox()
+                      /// <thai tran> Hide - Figma doesn't have it
+                      // : SizedBox(
+                      //   width: 0,
+                      //   child: ClientChooserButton(controller),
+                      // ),
                     ),
+                  ),
+                );
+              },
             ),
-          );
-        },
+          ),
+        ],
       ),
+      bottom: PreferredSize(
+        preferredSize: Size(MediaQuery.sizeOf(context).width, 1),
+        child: const Divider(height: 1, color: Color(0xFFE6E6E6)),
+      ),
+      actions: [
+        TextButton(
+          style: TextButton.styleFrom(padding: EdgeInsets.zero, minimumSize: Size.zero),
+          onPressed: () {},
+          child: SizedBox(
+            height: 40,
+            child: SvgPicture.asset('assets/svg/ic_phone.svg'),
+          ),
+        ),
+        TextButton(
+          style: TextButton.styleFrom(padding: EdgeInsets.zero, minimumSize: Size.zero),
+          onPressed: () {},
+          child: SizedBox(
+            width: 24, height: 40,
+            child: Center(
+              child: SvgPicture.asset('assets/svg/ic_three_dots.svg'),
+            ),
+          ),
+        ),
+      ],
     );
   }
 

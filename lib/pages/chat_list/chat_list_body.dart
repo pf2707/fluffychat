@@ -2,6 +2,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
 import 'package:flutter_gen/gen_l10n/l10n.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:matrix/matrix.dart';
 
 import 'package:fluffychat/config/app_config.dart';
@@ -81,52 +82,101 @@ class ChatListViewBody extends StatelessWidget {
               SliverList(
                 delegate: SliverChildListDelegate(
                   [
+                    if (controller.isSearchMode)...[
+                      _actionRow(),
+                      const SizedBox(height: 24),
+                      SearchTitle(
+                        title: L10n.of(context).chats,
+                        icon: const Icon(Icons.forum_outlined),
+                      ),
+                    ],
+                    if (client.prevBatch != null &&
+                        rooms.isEmpty &&
+                        !controller.isSearchMode) ...[
+                      Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Stack(
+                            alignment: Alignment.center,
+                            children: [
+                              const Column(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  DummyChatListItem(
+                                    opacity: 0.5,
+                                    animate: false,
+                                  ),
+                                  DummyChatListItem(
+                                    opacity: 0.3,
+                                    animate: false,
+                                  ),
+                                ],
+                              ),
+                              Icon(
+                                CupertinoIcons.chat_bubble_text_fill,
+                                size: 128,
+                                color: theme.colorScheme.secondary,
+                              ),
+                            ],
+                          ),
+                          Padding(
+                            padding: const EdgeInsets.all(16.0),
+                            child: Text(
+                              client.rooms.isEmpty
+                                  ? L10n.of(context).noChatsFoundHere
+                                  : L10n.of(context).noMoreChatsFound,
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
+                                fontSize: 18,
+                                color: theme.colorScheme.secondary,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
                     if (controller.isSearchMode) ...[
-                      SearchTitle(
-                        title: L10n.of(context).publicRooms,
-                        icon: const Icon(Icons.explore_outlined),
-                      ),
-                      PublicRoomsHorizontalList(publicRooms: publicRooms),
-                      SearchTitle(
-                        title: L10n.of(context).publicSpaces,
-                        icon: const Icon(Icons.workspaces_outlined),
-                      ),
-                      PublicRoomsHorizontalList(publicRooms: publicSpaces),
+                      // SearchTitle(
+                      //   title: L10n.of(context).publicRooms,
+                      //   icon: const Icon(Icons.explore_outlined),
+                      // ),
+                      // PublicRoomsHorizontalList(publicRooms: publicRooms),
+                      // SearchTitle(
+                      //   title: L10n.of(context).publicSpaces,
+                      //   icon: const Icon(Icons.workspaces_outlined),
+                      // ),
+                      // PublicRoomsHorizontalList(publicRooms: publicSpaces),
                       SearchTitle(
                         title: L10n.of(context).users,
                         icon: const Icon(Icons.group_outlined),
                       ),
-                      AnimatedContainer(
-                        clipBehavior: Clip.hardEdge,
-                        decoration: const BoxDecoration(),
-                        height: userSearchResult == null ||
-                                userSearchResult.results.isEmpty
-                            ? 0
-                            : 106,
-                        duration: FluffyThemes.animationDuration,
-                        curve: FluffyThemes.animationCurve,
-                        child: userSearchResult == null
-                            ? null
-                            : ListView.builder(
-                                scrollDirection: Axis.horizontal,
-                                itemCount: userSearchResult.results.length,
-                                itemBuilder: (context, i) => _SearchItem(
-                                  title:
-                                      userSearchResult.results[i].displayName ??
-                                          userSearchResult
-                                              .results[i].userId.localpart ??
-                                          L10n.of(context).unknownDevice,
-                                  avatar: userSearchResult.results[i].avatarUrl,
-                                  onPressed: () => showAdaptiveBottomSheet(
-                                    context: context,
-                                    builder: (c) => UserBottomSheet(
-                                      profile: userSearchResult.results[i],
-                                      outerContext: context,
-                                    ),
-                                  ),
-                                ),
+                      if (userSearchResult != null)
+                        ListView.builder(
+                          scrollDirection: Axis.vertical,
+                          itemCount: userSearchResult.results.length,
+                          physics: const NeverScrollableScrollPhysics(),
+                          shrinkWrap: true,
+                          itemBuilder: (context, i) => _SearchItemRow(
+                            title:
+                            userSearchResult.results[i].displayName ??
+                                userSearchResult
+                                    .results[i].userId.localpart ??
+                                L10n.of(context).unknownDevice,
+                            avatar: userSearchResult.results[i].avatarUrl,
+                            subtitle: "Last active 55m",
+                            avatarSize: 40,
+                            onPressed: () => showAdaptiveBottomSheet(
+                              context: context,
+                              builder: (c) => UserBottomSheet(
+                                profile: userSearchResult.results[i],
+                                outerContext: context,
                               ),
-                      ),
+                            ),
+                          ),
+                        )
+                    ]
+                    else...[
+                      PublicStoriesHorizontalList(stories: publicRooms),
                     ],
                     if (!controller.isSearchMode && AppConfig.showPresences)
                       GestureDetector(
@@ -228,56 +278,6 @@ class ChatListViewBody extends StatelessWidget {
                               .toList(),
                         ),
                       ),
-                    if (controller.isSearchMode)
-                      SearchTitle(
-                        title: L10n.of(context).chats,
-                        icon: const Icon(Icons.forum_outlined),
-                      ),
-                    if (client.prevBatch != null &&
-                        rooms.isEmpty &&
-                        !controller.isSearchMode) ...[
-                      Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Stack(
-                            alignment: Alignment.center,
-                            children: [
-                              const Column(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  DummyChatListItem(
-                                    opacity: 0.5,
-                                    animate: false,
-                                  ),
-                                  DummyChatListItem(
-                                    opacity: 0.3,
-                                    animate: false,
-                                  ),
-                                ],
-                              ),
-                              Icon(
-                                CupertinoIcons.chat_bubble_text_fill,
-                                size: 128,
-                                color: theme.colorScheme.secondary,
-                              ),
-                            ],
-                          ),
-                          Padding(
-                            padding: const EdgeInsets.all(16.0),
-                            child: Text(
-                              client.rooms.isEmpty
-                                  ? L10n.of(context).noChatsFoundHere
-                                  : L10n.of(context).noMoreChatsFound,
-                              textAlign: TextAlign.center,
-                              style: TextStyle(
-                                fontSize: 18,
-                                color: theme.colorScheme.secondary,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
                   ],
                 ),
               ),
@@ -313,6 +313,53 @@ class ChatListViewBody extends StatelessWidget {
           ),
         );
       },
+    );
+  }
+
+  _actionRow() {
+    Widget actionRow(String icon, String title, Function action) {
+      return InkWell(
+        onTap: () => action(),
+        child: SizedBox(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const SizedBox(height: 8),
+              Container(
+                width: 56, height: 56,
+                decoration: const BoxDecoration(
+                  color: Color(0xFFF0F5FF),
+                  borderRadius: BorderRadius.all(Radius.circular(28)),
+                ),
+                child: Center(
+                  child: SvgPicture.asset('assets/svg/$icon'),
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: Text(
+                  title,
+                  textAlign: TextAlign.center,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w500,
+                    color: Color(0xFF262626)
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+      children: [
+        actionRow("ic_add_contact.svg", "New Contact", () {}),
+        actionRow("ic_add_group.svg", "New Group", () {}),
+        actionRow("ic_global.svg", "Find Group", () {}),
+      ],
     );
   }
 }
@@ -399,4 +446,163 @@ class _SearchItem extends StatelessWidget {
           ),
         ),
       );
+}
+
+
+class _SearchItemRow extends StatelessWidget {
+  final String title;
+  final Uri? avatar;
+  final String? subtitle;
+  final double avatarSize;
+  final void Function() onPressed;
+
+  const _SearchItemRow({
+    required this.title,
+    this.avatar,
+    this.subtitle,
+    this.avatarSize = 60,
+    required this.onPressed,
+  });
+
+  @override
+  Widget build(BuildContext context) => InkWell(
+    onTap: onPressed,
+    child: SizedBox(
+      height: avatarSize + 20,
+      child: Row(
+        children: [
+          const SizedBox(width: 8),
+          Avatar(
+            mxContent: avatar,
+            name: title,
+            size: avatarSize,
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text(
+                  title,
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+                if (subtitle != null && subtitle!.isNotEmpty)
+                  Text(
+                    subtitle!,
+                    style: const TextStyle(
+                      color: Color(0xFF626167),
+                    ),
+                  ),
+              ],
+            ),
+          ),
+        ],
+      ),
+      // width: 84,
+      // child: Column(
+      //   mainAxisSize: MainAxisSize.min,
+      //   children: [
+      //     const SizedBox(height: 8),
+      //     Avatar(
+      //       mxContent: avatar,
+      //       name: title,
+      //     ),
+      //     Padding(
+      //       padding: const EdgeInsets.all(8.0),
+      //       child: Text(
+      //         title,
+      //         maxLines: 2,
+      //         textAlign: TextAlign.center,
+      //         overflow: TextOverflow.ellipsis,
+      //         style: const TextStyle(
+      //           fontSize: 12,
+      //         ),
+      //       ),
+      //     ),
+      //   ],
+      // ),
+    ),
+  );
+}
+
+class _StoryItemModel {
+  PublicRoomsChunk? story;
+  bool? isCreatedItem;
+  _StoryItemModel({this.isCreatedItem, this.story});
+}
+
+class PublicStoriesHorizontalList extends StatelessWidget {
+  const PublicStoriesHorizontalList({
+    super.key,
+    required this.stories,
+  });
+
+  final List<PublicRoomsChunk>? stories;
+
+  @override
+  Widget build(BuildContext context) {
+    final publicStories = [_StoryItemModel(isCreatedItem: true)]
+        + (stories?.map((e) => _StoryItemModel(story: e)).toList() ?? []);
+    return AnimatedContainer(
+      clipBehavior: Clip.hardEdge,
+      decoration: const BoxDecoration(),
+      height: 106,
+      duration: FluffyThemes.animationDuration,
+      curve: FluffyThemes.animationCurve,
+      child: ListView.builder(
+        scrollDirection: Axis.horizontal,
+        itemCount: publicStories.length,
+        itemBuilder: (context, i) {
+          final item = publicStories[i];
+          if (item.isCreatedItem != null && item.isCreatedItem!) {
+            return InkWell(
+              onTap: () {},
+              child: SizedBox(
+                width: 84,
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const SizedBox(height: 8),
+                    SvgPicture.asset('assets/svg/ic_create_story.svg'),
+                    const Padding(
+                      padding: EdgeInsets.all(8.0),
+                      child: Text(
+                        "Your story",
+                        textAlign: TextAlign.center,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          fontSize: 12,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            );
+          }
+
+          final story = item.story;
+          return _SearchItem(
+            title: story!.name ??
+                story.canonicalAlias?.localpart ??
+                L10n.of(context).group,
+            avatar: story.avatarUrl,
+            onPressed: () => showAdaptiveBottomSheet(
+              context: context,
+              builder: (c) => PublicRoomBottomSheet(
+                roomAlias:
+                story.canonicalAlias ?? story.roomId,
+                outerContext: context,
+                chunk: story,
+              ),
+            ),
+          );
+        },
+      )
+    );
+  }
 }

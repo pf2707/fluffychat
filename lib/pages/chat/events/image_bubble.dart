@@ -94,11 +94,11 @@ class ImageBubble extends StatelessWidget {
           clipBehavior: Clip.hardEdge,
           shape: RoundedRectangleBorder(
             borderRadius: borderRadius,
-            side: BorderSide(
-              color: event.messageType == MessageTypes.Sticker
-                  ? Colors.transparent
-                  : theme.dividerColor,
-            ),
+            // side: BorderSide(
+            //   color: event.messageType == MessageTypes.Sticker
+            //       ? Colors.transparent
+            //       : theme.dividerColor,
+            // ),
           ),
           child: InkWell(
             onTap: () => _onTap(context),
@@ -120,8 +120,9 @@ class ImageBubble extends StatelessWidget {
           ),
         ),
         if (fileDescription != null && textColor != null)
-          SizedBox(
+          Container(
             width: width,
+            padding: const EdgeInsets.only(bottom: 10),
             child: Linkify(
               text: fileDescription,
               style: TextStyle(

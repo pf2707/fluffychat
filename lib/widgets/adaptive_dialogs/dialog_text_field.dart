@@ -17,6 +17,9 @@ class DialogTextField extends StatelessWidget {
   final TextInputType? keyboardType;
   final int? maxLength;
   final bool autocorrect = true;
+  final Color? backgroundColor;
+  final BorderRadius? borderRadius;
+  final EdgeInsets? padding;
 
   const DialogTextField({
     super.key,
@@ -32,6 +35,9 @@ class DialogTextField extends StatelessWidget {
     this.controller,
     this.counterText,
     this.errorText,
+    this.backgroundColor,
+    this.borderRadius,
+    this.padding,
   });
 
   @override
@@ -68,6 +74,7 @@ class DialogTextField extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             CupertinoTextField(
+              padding: padding ?? const EdgeInsets.all(7.0),
               controller: controller,
               obscureText: obscureText,
               minLines: minLines,
@@ -78,6 +85,10 @@ class DialogTextField extends StatelessWidget {
               prefix: prefixText != null ? Text(prefixText) : null,
               suffix: suffixText != null ? Text(suffixText) : null,
               placeholder: labelText ?? hintText,
+              decoration: BoxDecoration(
+                color: backgroundColor ?? Colors.white,
+                borderRadius: borderRadius,
+              ),
             ),
             if (errorText != null)
               Text(

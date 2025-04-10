@@ -21,8 +21,12 @@ class ReplyContent extends StatelessWidget {
   });
 
   static const BorderRadius borderRadius = BorderRadius.only(
-    topRight: Radius.circular(AppConfig.borderRadius / 2),
-    bottomRight: Radius.circular(AppConfig.borderRadius / 2),
+    topRight: Radius.circular(AppConfig.subBorderRadius),
+    topLeft: Radius.circular(AppConfig.subBorderRadius),
+    bottomLeft: Radius.circular(4),
+    bottomRight: Radius.circular(4),
+    // topRight: Radius.circular(AppConfig.borderRadius / 2),
+    // bottomRight: Radius.circular(AppConfig.borderRadius / 2),
   );
 
   @override
@@ -46,17 +50,18 @@ class ReplyContent extends StatelessWidget {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: <Widget>[
-          Container(
-            width: 3,
-            height: fontSize * 2 + 16,
-            color: color,
-          ),
-          const SizedBox(width: 6),
+          // Container(
+          //   width: 3,
+          //   height: fontSize * 2 + 16,
+          //   color: color,
+          // ),
+          const SizedBox(width: 16),
           Flexible(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisAlignment: MainAxisAlignment.center,
               children: <Widget>[
+                const SizedBox(height: 5),
                 FutureBuilder<User?>(
                   initialData: displayEvent.senderFromMemoryOrFallback,
                   future: displayEvent.fetchSenderUser(),
@@ -90,6 +95,7 @@ class ReplyContent extends StatelessWidget {
                     fontSize: fontSize,
                   ),
                 ),
+                const SizedBox(height: 5),
               ],
             ),
           ),

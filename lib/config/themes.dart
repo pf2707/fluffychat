@@ -44,6 +44,12 @@ abstract class FluffyThemes {
     final colorScheme = ColorScheme.fromSeed(
       brightness: brightness,
       seedColor: seed ?? AppConfig.colorSchemeSeed ?? AppConfig.primaryColor,
+    ).copyWith(
+      onPrimaryContainer: const Color(0xFF8E8E8E),
+      secondaryContainer: const Color(0xFFE7E7E7),
+      primary: const Color(0xFF003EBF),
+      onSurface: const Color(0xFF262626),
+      surfaceContainerHigh: const Color(0xFFF0F0F0),
     );
     final isColumnMode = FluffyThemes.isColumnMode(context);
     return ThemeData(
@@ -131,10 +137,15 @@ extension on Brightness {
 extension BubbleColorTheme on ThemeData {
   Color get bubbleColor => brightness == Brightness.light
       ? colorScheme.primary
-      : colorScheme.primaryContainer;
+      : colorScheme.primary;
+      // : colorScheme.primaryContainer;
+
   Color get onBubbleColor => brightness == Brightness.light
-      ? colorScheme.onPrimary
-      : colorScheme.onPrimaryContainer;
+      ? Colors.white
+      : Colors.white;
+  // Color get onBubbleColor => brightness == Brightness.light
+  //     ? colorScheme.onPrimary
+  //     : colorScheme.onPrimaryContainer;
 
   Color get secondaryBubbleColor => HSLColor.fromColor(
         brightness == Brightness.light

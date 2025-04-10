@@ -1,6 +1,8 @@
+import 'package:fluffychat/config/app_config.dart';
 import 'package:flutter/material.dart';
 
 import 'package:flutter_gen/gen_l10n/l10n.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:go_router/go_router.dart';
 
 import 'package:fluffychat/config/themes.dart';
@@ -15,6 +17,8 @@ class ChatListView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     return PopScope(
       canPop: !controller.isSearchMode && controller.activeSpaceId == null,
       onPopInvokedWithResult: (pop, _) {
@@ -51,14 +55,29 @@ class ChatListView extends StatelessWidget {
                 body: ChatListViewBody(controller),
                 floatingActionButton: !controller.isSearchMode &&
                         controller.activeSpaceId == null
-                    ? FloatingActionButton.extended(
-                        onPressed: () => context.go('/rooms/newprivatechat'),
-                        icon: const Icon(Icons.add_outlined),
-                        label: Text(
-                          L10n.of(context).chat,
-                          overflow: TextOverflow.fade,
+                    ? TextButton(
+                      style: TextButton.styleFrom(padding: EdgeInsets.zero, minimumSize: Size.zero),
+                      onPressed: () => context.go('/rooms/newprivatechat'),
+                      child: Container(
+                        width: 60, height: 60,
+                        decoration: BoxDecoration(
+                          color: theme.colorScheme.primary,
+                          borderRadius: const BorderRadius.all(Radius.circular(30))
                         ),
-                      )
+                        child: Center(
+                          child: SvgPicture.asset('assets/svg/ic_message_big.svg'),
+                        ),
+                      ),
+                    )
+                    // ? FloatingActionButton.extended(
+                    //     backgroundColor: AppConfig.primaryColor,
+                    //     onPressed: () => context.go('/rooms/newprivatechat'),
+                    //     icon: SvgPicture.asset('assets/svg/ic_message.big.svg'), //const Icon(Icons.add_outlined),
+                    //     label: Text(
+                    //       L10n.of(context).chat,
+                    //       overflow: TextOverflow.fade,
+                    //     ),
+                    //   )
                     : const SizedBox.shrink(),
               ),
             ),

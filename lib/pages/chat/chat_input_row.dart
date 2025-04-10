@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'package:animations/animations.dart';
 import 'package:flutter_gen/gen_l10n/l10n.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:matrix/matrix.dart';
 
 import 'package:fluffychat/config/app_config.dart';
@@ -109,147 +110,159 @@ class ChatInputRow extends StatelessWidget {
             ]
           : <Widget>[
               const SizedBox(width: 4),
-              AnimatedContainer(
-                duration: FluffyThemes.animationDuration,
-                curve: FluffyThemes.animationCurve,
-                width: controller.sendController.text.isNotEmpty ? 0 : height,
-                height: height,
-                alignment: Alignment.center,
-                decoration: const BoxDecoration(),
-                clipBehavior: Clip.hardEdge,
-                child: PopupMenuButton<String>(
-                  icon: const Icon(Icons.add_circle_outline),
-                  iconColor: theme.colorScheme.onPrimaryContainer,
-                  onSelected: controller.onAddPopupMenuButtonSelected,
-                  itemBuilder: (BuildContext context) =>
-                      <PopupMenuEntry<String>>[
-                    if (PlatformInfos.isMobile)
-                      PopupMenuItem<String>(
-                        value: 'location',
-                        child: ListTile(
-                          leading: CircleAvatar(
-                            backgroundColor:
-                                theme.colorScheme.onPrimaryContainer,
-                            foregroundColor: theme.colorScheme.primaryContainer,
-                            child: const Icon(Icons.gps_fixed_outlined),
-                          ),
-                          title: Text(L10n.of(context).shareLocation),
-                          contentPadding: const EdgeInsets.all(0),
-                        ),
-                      ),
-                    PopupMenuItem<String>(
-                      value: 'image',
-                      child: ListTile(
-                        leading: CircleAvatar(
-                          backgroundColor: theme.colorScheme.onPrimaryContainer,
-                          foregroundColor: theme.colorScheme.primaryContainer,
-                          child: const Icon(Icons.photo_outlined),
-                        ),
-                        title: Text(L10n.of(context).sendImage),
-                        contentPadding: const EdgeInsets.all(0),
-                      ),
-                    ),
-                    PopupMenuItem<String>(
-                      value: 'video',
-                      child: ListTile(
-                        leading: CircleAvatar(
-                          backgroundColor: theme.colorScheme.onPrimaryContainer,
-                          foregroundColor: theme.colorScheme.primaryContainer,
-                          child: const Icon(Icons.video_camera_back_outlined),
-                        ),
-                        title: Text(L10n.of(context).sendVideo),
-                        contentPadding: const EdgeInsets.all(0),
-                      ),
-                    ),
-                    PopupMenuItem<String>(
-                      value: 'file',
-                      child: ListTile(
-                        leading: CircleAvatar(
-                          backgroundColor: theme.colorScheme.onPrimaryContainer,
-                          foregroundColor: theme.colorScheme.primaryContainer,
-                          child: const Icon(Icons.attachment_outlined),
-                        ),
-                        title: Text(L10n.of(context).sendFile),
-                        contentPadding: const EdgeInsets.all(0),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              if (PlatformInfos.isMobile)
-                AnimatedContainer(
-                  duration: FluffyThemes.animationDuration,
-                  curve: FluffyThemes.animationCurve,
-                  width: controller.sendController.text.isNotEmpty ? 0 : height,
-                  height: height,
-                  alignment: Alignment.center,
-                  decoration: const BoxDecoration(),
-                  clipBehavior: Clip.hardEdge,
-                  child: PopupMenuButton(
-                    icon: const Icon(Icons.camera_alt_outlined),
-                    onSelected: controller.onAddPopupMenuButtonSelected,
-                    iconColor: theme.colorScheme.onPrimaryContainer,
-                    itemBuilder: (context) => [
-                      PopupMenuItem<String>(
-                        value: 'camera-video',
-                        child: ListTile(
-                          leading: CircleAvatar(
-                            backgroundColor:
-                                theme.colorScheme.onPrimaryContainer,
-                            foregroundColor: theme.colorScheme.primaryContainer,
-                            child: const Icon(Icons.videocam_outlined),
-                          ),
-                          title: Text(L10n.of(context).recordAVideo),
-                          contentPadding: const EdgeInsets.all(0),
-                        ),
-                      ),
-                      PopupMenuItem<String>(
-                        value: 'camera',
-                        child: ListTile(
-                          leading: CircleAvatar(
-                            backgroundColor:
-                                theme.colorScheme.onPrimaryContainer,
-                            foregroundColor: theme.colorScheme.primaryContainer,
-                            child: const Icon(Icons.camera_alt_outlined),
-                          ),
-                          title: Text(L10n.of(context).takeAPhoto),
-                          contentPadding: const EdgeInsets.all(0),
-                        ),
-                      ),
-                    ],
+              TextButton(
+                style: TextButton.styleFrom(padding: EdgeInsets.zero, minimumSize: Size.zero),
+                onPressed: controller.functionToolPickerAction,
+                child: SizedBox(
+                  width: 40, height: 40,
+                  child: Center(
+                    child: SvgPicture.asset('assets/svg/ic_attachment.svg'),
                   ),
                 ),
-              Container(
-                height: height,
-                width: height,
-                alignment: Alignment.center,
-                child: IconButton(
-                  tooltip: L10n.of(context).emojis,
-                  color: theme.colorScheme.onPrimaryContainer,
-                  icon: PageTransitionSwitcher(
-                    transitionBuilder: (
-                      Widget child,
-                      Animation<double> primaryAnimation,
-                      Animation<double> secondaryAnimation,
-                    ) {
-                      return SharedAxisTransition(
-                        animation: primaryAnimation,
-                        secondaryAnimation: secondaryAnimation,
-                        transitionType: SharedAxisTransitionType.scaled,
-                        fillColor: Colors.transparent,
-                        child: child,
-                      );
-                    },
-                    child: Icon(
-                      controller.showEmojiPicker
-                          ? Icons.keyboard
-                          : Icons.add_reaction_outlined,
-                      key: ValueKey(controller.showEmojiPicker),
-                    ),
-                  ),
-                  onPressed: controller.emojiPickerAction,
-                ),
               ),
+              /// Old Function button
+              // AnimatedContainer(
+              //   duration: FluffyThemes.animationDuration,
+              //   curve: FluffyThemes.animationCurve,
+              //   width: controller.sendController.text.isNotEmpty ? 0 : height,
+              //   height: height,
+              //   alignment: Alignment.center,
+              //   decoration: const BoxDecoration(),
+              //   clipBehavior: Clip.hardEdge,
+              //   child: PopupMenuButton<String>(
+              //     icon: SvgPicture.asset('assets/svg/ic_attachment.svg') ,//const Icon(Icons.add_circle_outline),
+              //     iconColor: theme.colorScheme.onPrimaryContainer,
+              //     onSelected: controller.onAddPopupMenuButtonSelected,
+              //     itemBuilder: (BuildContext context) =>
+              //         <PopupMenuEntry<String>>[
+              //       if (PlatformInfos.isMobile)
+              //         PopupMenuItem<String>(
+              //           value: 'location',
+              //           child: ListTile(
+              //             leading: CircleAvatar(
+              //               backgroundColor:
+              //                   theme.colorScheme.onPrimaryContainer,
+              //               foregroundColor: theme.colorScheme.primaryContainer,
+              //               child: const Icon(Icons.gps_fixed_outlined),
+              //             ),
+              //             title: Text(L10n.of(context).shareLocation),
+              //             contentPadding: const EdgeInsets.all(0),
+              //           ),
+              //         ),
+              //       PopupMenuItem<String>(
+              //         value: 'image',
+              //         child: ListTile(
+              //           leading: CircleAvatar(
+              //             backgroundColor: theme.colorScheme.onPrimaryContainer,
+              //             foregroundColor: theme.colorScheme.primaryContainer,
+              //             child: const Icon(Icons.photo_outlined),
+              //           ),
+              //           title: Text(L10n.of(context).sendImage),
+              //           contentPadding: const EdgeInsets.all(0),
+              //         ),
+              //       ),
+              //       PopupMenuItem<String>(
+              //         value: 'video',
+              //         child: ListTile(
+              //           leading: CircleAvatar(
+              //             backgroundColor: theme.colorScheme.onPrimaryContainer,
+              //             foregroundColor: theme.colorScheme.primaryContainer,
+              //             child: const Icon(Icons.video_camera_back_outlined),
+              //           ),
+              //           title: Text(L10n.of(context).sendVideo),
+              //           contentPadding: const EdgeInsets.all(0),
+              //         ),
+              //       ),
+              //       PopupMenuItem<String>(
+              //         value: 'file',
+              //         child: ListTile(
+              //           leading: CircleAvatar(
+              //             backgroundColor: theme.colorScheme.onPrimaryContainer,
+              //             foregroundColor: theme.colorScheme.primaryContainer,
+              //             child: const Icon(Icons.attachment_outlined),
+              //           ),
+              //           title: Text(L10n.of(context).sendFile),
+              //           contentPadding: const EdgeInsets.all(0),
+              //         ),
+              //       ),
+              //     ],
+              //   ),
+              // ),
+              /// old icon Camera / Photo Library
+              // if (PlatformInfos.isMobile)
+              //   AnimatedContainer(
+              //     duration: FluffyThemes.animationDuration,
+              //     curve: FluffyThemes.animationCurve,
+              //     width: controller.sendController.text.isNotEmpty ? 0 : height,
+              //     height: height,
+              //     alignment: Alignment.center,
+              //     decoration: const BoxDecoration(),
+              //     clipBehavior: Clip.hardEdge,
+              //     child: PopupMenuButton(
+              //       icon: const Icon(Icons.camera_alt_outlined),
+              //       onSelected: controller.onAddPopupMenuButtonSelected,
+              //       iconColor: theme.colorScheme.onPrimaryContainer,
+              //       itemBuilder: (context) => [
+              //         PopupMenuItem<String>(
+              //           value: 'camera-video',
+              //           child: ListTile(
+              //             leading: CircleAvatar(
+              //               backgroundColor:
+              //                   theme.colorScheme.onPrimaryContainer,
+              //               foregroundColor: theme.colorScheme.primaryContainer,
+              //               child: const Icon(Icons.videocam_outlined),
+              //             ),
+              //             title: Text(L10n.of(context).recordAVideo),
+              //             contentPadding: const EdgeInsets.all(0),
+              //           ),
+              //         ),
+              //         PopupMenuItem<String>(
+              //           value: 'camera',
+              //           child: ListTile(
+              //             leading: CircleAvatar(
+              //               backgroundColor:
+              //                   theme.colorScheme.onPrimaryContainer,
+              //               foregroundColor: theme.colorScheme.primaryContainer,
+              //               child: const Icon(Icons.camera_alt_outlined),
+              //             ),
+              //             title: Text(L10n.of(context).takeAPhoto),
+              //             contentPadding: const EdgeInsets.all(0),
+              //           ),
+              //         ),
+              //       ],
+              //     ),
+              //   ),
+              // Container(
+              //   height: height,
+              //   width: height,
+              //   alignment: Alignment.center,
+              //   child: IconButton(
+              //     tooltip: L10n.of(context).emojis,
+              //     color: theme.colorScheme.onPrimaryContainer,
+              //     icon: PageTransitionSwitcher(
+              //       transitionBuilder: (
+              //         Widget child,
+              //         Animation<double> primaryAnimation,
+              //         Animation<double> secondaryAnimation,
+              //       ) {
+              //         return SharedAxisTransition(
+              //           animation: primaryAnimation,
+              //           secondaryAnimation: secondaryAnimation,
+              //           transitionType: SharedAxisTransitionType.scaled,
+              //           fillColor: Colors.transparent,
+              //           child: child,
+              //         );
+              //       },
+              //       child: Icon(
+              //         controller.showEmojiPicker
+              //             ? Icons.keyboard
+              //             : Icons.add_reaction_outlined,
+              //         key: ValueKey(controller.showEmojiPicker),
+              //       ),
+              //     ),
+              //     onPressed: controller.emojiPickerAction,
+              //   ),
+              // ),
               if (Matrix.of(context).isMultiAccount &&
                   Matrix.of(context).hasComplexBundles &&
                   Matrix.of(context).currentBundle!.length > 1)
@@ -259,9 +272,14 @@ class ChatInputRow extends StatelessWidget {
                   alignment: Alignment.center,
                   child: _ChatAccountPicker(controller),
                 ),
+              //Typing box
               Expanded(
-                child: Padding(
+                child: Container(
                   padding: const EdgeInsets.symmetric(vertical: 0.0),
+                  decoration: BoxDecoration(
+                    color: theme.colorScheme.secondaryContainer,
+                    borderRadius: const BorderRadius.all(Radius.circular(24)),
+                  ),
                   child: InputBar(
                     room: controller.room,
                     minLines: 1,
@@ -278,16 +296,47 @@ class ChatInputRow extends StatelessWidget {
                     controller: controller.sendController,
                     decoration: InputDecoration(
                       contentPadding: const EdgeInsets.only(
-                        left: 6.0,
+                        left: 16.0,
                         right: 6.0,
                         bottom: 6.0,
-                        top: 3.0,
+                        top: 10.0,
                       ),
                       hintText: L10n.of(context).writeAMessage,
                       hintMaxLines: 1,
                       border: InputBorder.none,
                       enabledBorder: InputBorder.none,
                       filled: false,
+                      suffixIcon: Container(
+                        height: 20,
+                        width: 20,
+                        alignment: Alignment.center,
+                        child: IconButton(
+                          tooltip: L10n.of(context).emojis,
+                          color: theme.colorScheme.onPrimaryContainer,
+                          icon: PageTransitionSwitcher(
+                            transitionBuilder: (
+                                Widget child,
+                                Animation<double> primaryAnimation,
+                                Animation<double> secondaryAnimation,
+                                ) {
+                              return SharedAxisTransition(
+                                animation: primaryAnimation,
+                                secondaryAnimation: secondaryAnimation,
+                                transitionType: SharedAxisTransitionType.scaled,
+                                fillColor: Colors.transparent,
+                                child: child,
+                              );
+                            },
+                            child: controller.showEmojiPicker ?
+                            Icon(
+                              Icons.keyboard,
+                              key: ValueKey(controller.showEmojiPicker),
+                            ) :
+                            SvgPicture.asset('assets/svg/ic_input_emoji.svg'),
+                          ),
+                          onPressed: controller.emojiPickerAction,
+                        ),
+                      ),
                     ),
                     onChanged: controller.onInputBarChanged,
                   ),
@@ -304,24 +353,26 @@ class ChatInputRow extends StatelessWidget {
                         onPressed: controller.voiceMessageAction,
                         elevation: 0,
                         heroTag: null,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(height),
-                        ),
-                        backgroundColor: theme.bubbleColor,
-                        foregroundColor: theme.onBubbleColor,
-                        child: const Icon(Icons.mic_none_outlined),
+                        // shape: RoundedRectangleBorder(
+                        //   borderRadius: BorderRadius.circular(height),
+                        // ),
+                        backgroundColor: Colors.transparent, //theme.bubbleColor,
+                        // foregroundColor: theme.onBubbleColor,
+                        // child: const Icon(Icons.mic_none_outlined),
+                        child: SvgPicture.asset('assets/svg/ic_micro.svg'),
                       )
                     : FloatingActionButton.small(
                         tooltip: L10n.of(context).send,
                         onPressed: controller.send,
                         elevation: 0,
                         heroTag: null,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(height),
-                        ),
-                        backgroundColor: theme.bubbleColor,
-                        foregroundColor: theme.onBubbleColor,
-                        child: const Icon(Icons.send_outlined),
+                        // shape: RoundedRectangleBorder(
+                        //   borderRadius: BorderRadius.circular(height),
+                        // ),
+                        backgroundColor: Colors.transparent, //theme.bubbleColor,
+                        // foregroundColor: theme.onBubbleColor,
+                        // child: const Icon(Icons.send_outlined),
+                        child: SvgPicture.asset('assets/svg/ic_send_chat.svg'),
                       ),
               ),
             ],
