@@ -635,7 +635,7 @@ class ChatController extends State<ChatPageWithRoom>
     if (image == null) return;
     await showAdaptiveDialog(
       context: context,
-      builder: (c) => SendFileDialog(
+      builder: (c) => SendImageScreen(
         files: [XFile.fromData(image)],
         room: room,
         outerContext: context,
@@ -651,7 +651,7 @@ class ChatController extends State<ChatPageWithRoom>
 
     await showAdaptiveDialog(
       context: context,
-      builder: (c) => SendFileDialog(
+      builder: (c) => SendImageScreen(
         files: [file],
         room: room,
         outerContext: context,
@@ -670,7 +670,7 @@ class ChatController extends State<ChatPageWithRoom>
 
     await showAdaptiveDialog(
       context: context,
-      builder: (c) => SendFileDialog(
+      builder: (c) => SendImageScreen(
         files: [file],
         room: room,
         outerContext: context,
@@ -768,15 +768,21 @@ class ChatController extends State<ChatPageWithRoom>
   }
 
   void _inputFocusListener() {
-    if (showEmojiPicker && inputFocus.hasFocus) {
-      emojiPickerType = EmojiPickerType.keyboard;
-      setState(() => showEmojiPicker = false);
+    if (inputFocus.hasFocus) {
+      if (showEmojiPicker || showFunctionToolPicker) {
+        emojiPickerType = EmojiPickerType.keyboard;
+        setState(() {
+          showFunctionToolPicker = false;
+          showEmojiPicker = false;
+        });
+      }
     }
   }
 
   void sendLocationAction() async {
     await showAdaptiveDialog(
       context: context,
+      // builder: (c) => SendLocationScreen(room: room),
       builder: (c) => SendLocationDialog(room: room),
     );
   }

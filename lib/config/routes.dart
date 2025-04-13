@@ -1,6 +1,8 @@
 import 'dart:async';
 
-import 'package:fluffychat/pages/chat/send_image_screen.dart';
+import 'package:fluffychat/main/home_tab_page.dart';
+import 'package:fluffychat/main/payment_tab_page.dart';
+import 'package:fluffychat/main_view.dart';
 import 'package:flutter/material.dart';
 
 import 'package:go_router/go_router.dart';
@@ -40,6 +42,10 @@ import 'package:fluffychat/widgets/matrix.dart';
 import 'package:fluffychat/widgets/share_scaffold_dialog.dart';
 
 abstract class AppRoutes {
+  static final rootNavigatorKey = GlobalKey<NavigatorState>();
+  static final rootShellHomeNavigatorKey = GlobalKey<NavigatorState>();
+  static final rootShellChatNavigatorKey = GlobalKey<NavigatorState>();
+
   static FutureOr<String?> loggedInRedirect(
     BuildContext context,
     GoRouterState state,
@@ -58,7 +64,7 @@ abstract class AppRoutes {
     GoRoute(
       path: '/',
       redirect: (context, state) =>
-          Matrix.of(context).client.isLogged() ? '/rooms' : '/home',
+          Matrix.of(context).client.isLogged() ? '/home_tab' /*'/rooms'*/ : '/home',
     ),
     GoRoute(
       path: '/home',
@@ -96,379 +102,796 @@ abstract class AppRoutes {
         const ConfigViewer(),
       ),
     ),
-    ShellRoute(
-      // Never use a transition on the shell route. Changing the PageBuilder
-      // here based on a MediaQuery causes the child to briefly be rendered
-      // twice with the same GlobalKey, blowing up the rendering.
-      pageBuilder: (context, state, child) => noTransitionPageBuilder(
-        context,
-        state,
-        FluffyThemes.isColumnMode(context) &&
-                state.fullPath?.startsWith('/rooms/settings') == false
-            ? TwoColumnLayout(
-                mainView: ChatList(
-                  activeChat: state.pathParameters['roomid'],
-                  displayNavigationRail:
-                      state.path?.startsWith('/rooms/settings') != true,
-                ),
-                sideView: child,
-              )
-            : child,
-      ),
-      routes: [
-        GoRoute(
-          path: '/rooms',
-          redirect: loggedOutRedirect,
-          pageBuilder: (context, state) => defaultPageBuilder(
-            context,
-            state,
-            FluffyThemes.isColumnMode(context)
-                ? const EmptyPage()
-                : ChatList(
-                    activeChat: state.pathParameters['roomid'],
-                  ),
+    StatefulShellRoute(
+      redirect: loggedOutRedirect,
+      // pageBuilder: (context, state, child) => noTransitionPageBuilder(
+      //   context,
+      //   state,
+      //   FluffyThemes.isColumnMode(context) &&
+      //           state.fullPath?.startsWith('/rooms/settings') == false
+      //       ? TwoColumnLayout(
+      //           mainView: const HomeTabPage(),
+      //           // mainView: ChatList(
+      //           //   activeChat: state.pathParameters['roomid'],
+      //           //   displayNavigationRail:
+      //           //       state.path?.startsWith('/rooms/settings') != true,
+      //           // ),
+      //           sideView: child,
+      //         )
+      //       : child,
+      // ),
+      builder: (BuildContext context, GoRouterState state,
+          StatefulNavigationShell navigationShell) {
+        // Just like with the top level StatefulShellRoute, no
+        // customization is done in the builder function.
+        return navigationShell;
+      },
+      navigatorContainerBuilder: (BuildContext context,
+          StatefulNavigationShell navigationShell, List<Widget> children) {
+        // Returning a customized container for the branch
+        // Navigators (i.e. the `List<Widget> children` argument).
+        //
+        // See TabbedRootScreen for more details on how the children
+        // are managed (in a TabBarView).
+        return MainView(navigationShell: navigationShell, children: children);
+      },
+      branches: <StatefulShellBranch>[
+        StatefulShellBranch(navigatorKey: AppRoutes.rootShellHomeNavigatorKey, routes: <GoRoute>[
+          GoRoute(
+            path: '/home_tab',
+            builder: (BuildContext context, GoRouterState state) => const HomeTabPage(),
+            // routes: <RouteBase>[
+            //   GoRoute(
+            //     path: 'details',
+            //     builder: (BuildContext context, GoRouterState state) =>
+            //     const DetailsScreen(
+            //       label: 'A',
+            //       withScaffold: true,
+            //     ),
+            //   ),
+            // ],
           ),
-          routes: [
-            GoRoute(
-              path: 'archive',
-              pageBuilder: (context, state) => defaultPageBuilder(
-                context,
-                state,
-                const Archive(),
+        ],),
+        StatefulShellBranch(navigatorKey: AppRoutes.rootShellChatNavigatorKey, routes: <GoRoute>[
+          GoRoute(
+            path: '/rooms',
+            redirect: loggedOutRedirect,
+            pageBuilder: (context, state) => defaultPageBuilder(
+              context,
+              state,
+              FluffyThemes.isColumnMode(context)
+                  ? const EmptyPage()
+                  : ChatList(
+                activeChat: state.pathParameters['roomid'],
               ),
-              routes: [
-                GoRoute(
-                  path: ':roomid',
-                  pageBuilder: (context, state) => defaultPageBuilder(
+            ),
+            routes: [
+              GoRoute(
+                path: 'archive',
+                pageBuilder: (context, state) => defaultPageBuilder(
+                  context,
+                  state,
+                  const Archive(),
+                ),
+                routes: [
+                  GoRoute(
+                    path: ':roomid',
+                    pageBuilder: (context, state) => defaultPageBuilder(
+                      context,
+                      state,
+                      ChatPage(
+                        roomId: state.pathParameters['roomid']!,
+                        eventId: state.uri.queryParameters['event'],
+                      ),
+                    ),
+                    redirect: loggedOutRedirect,
+                  ),
+                ],
+                redirect: loggedOutRedirect,
+              ),
+              GoRoute(
+                path: 'newprivatechat',
+                pageBuilder: (context, state) => defaultPageBuilder(
+                  context,
+                  state,
+                  const NewPrivateChat(),
+                ),
+                redirect: loggedOutRedirect,
+              ),
+              GoRoute(
+                path: 'newgroup',
+                pageBuilder: (context, state) => defaultPageBuilder(
+                  context,
+                  state,
+                  const NewGroup(),
+                ),
+                redirect: loggedOutRedirect,
+              ),
+              GoRoute(
+                path: 'newspace',
+                pageBuilder: (context, state) => defaultPageBuilder(
+                  context,
+                  state,
+                  const NewGroup(createGroupType: CreateGroupType.space),
+                ),
+                redirect: loggedOutRedirect,
+              ),
+              ShellRoute(
+                pageBuilder: (context, state, child) => defaultPageBuilder(
+                  context,
+                  state,
+                  FluffyThemes.isColumnMode(context)
+                      ? TwoColumnLayout(
+                    mainView: Settings(key: state.pageKey),
+                    sideView: child,
+                  )
+                      : child,
+                ),
+                routes: [
+                  GoRoute(
+                    path: 'settings',
+                    pageBuilder: (context, state) => defaultPageBuilder(
+                      context,
+                      state,
+                      FluffyThemes.isColumnMode(context)
+                          ? const EmptyPage()
+                          : const Settings(),
+                    ),
+                    routes: [
+                      GoRoute(
+                        path: 'notifications',
+                        pageBuilder: (context, state) => defaultPageBuilder(
+                          context,
+                          state,
+                          const SettingsNotifications(),
+                        ),
+                        redirect: loggedOutRedirect,
+                      ),
+                      GoRoute(
+                        path: 'style',
+                        pageBuilder: (context, state) => defaultPageBuilder(
+                          context,
+                          state,
+                          const SettingsStyle(),
+                        ),
+                        redirect: loggedOutRedirect,
+                      ),
+                      GoRoute(
+                        path: 'devices',
+                        pageBuilder: (context, state) => defaultPageBuilder(
+                          context,
+                          state,
+                          const DevicesSettings(),
+                        ),
+                        redirect: loggedOutRedirect,
+                      ),
+                      GoRoute(
+                        path: 'chat',
+                        pageBuilder: (context, state) => defaultPageBuilder(
+                          context,
+                          state,
+                          const SettingsChat(),
+                        ),
+                        routes: [
+                          GoRoute(
+                            path: 'emotes',
+                            pageBuilder: (context, state) => defaultPageBuilder(
+                              context,
+                              state,
+                              const EmotesSettings(),
+                            ),
+                          ),
+                        ],
+                        redirect: loggedOutRedirect,
+                      ),
+                      GoRoute(
+                        path: 'addaccount',
+                        redirect: loggedOutRedirect,
+                        pageBuilder: (context, state) => defaultPageBuilder(
+                          context,
+                          state,
+                          const HomeserverPicker(addMultiAccount: true),
+                        ),
+                        routes: [
+                          GoRoute(
+                            path: 'login',
+                            pageBuilder: (context, state) => defaultPageBuilder(
+                              context,
+                              state,
+                              const Login(),
+                            ),
+                            redirect: loggedOutRedirect,
+                          ),
+                        ],
+                      ),
+                      GoRoute(
+                        path: 'homeserver',
+                        pageBuilder: (context, state) {
+                          return defaultPageBuilder(
+                            context,
+                            state,
+                            const SettingsHomeserver(),
+                          );
+                        },
+                        redirect: loggedOutRedirect,
+                      ),
+                      GoRoute(
+                        path: 'security',
+                        redirect: loggedOutRedirect,
+                        pageBuilder: (context, state) => defaultPageBuilder(
+                          context,
+                          state,
+                          const SettingsSecurity(),
+                        ),
+                        routes: [
+                          GoRoute(
+                            path: 'password',
+                            pageBuilder: (context, state) {
+                              return defaultPageBuilder(
+                                context,
+                                state,
+                                const SettingsPassword(),
+                              );
+                            },
+                            redirect: loggedOutRedirect,
+                          ),
+                          GoRoute(
+                            path: 'ignorelist',
+                            pageBuilder: (context, state) {
+                              return defaultPageBuilder(
+                                context,
+                                state,
+                                SettingsIgnoreList(
+                                  initialUserId: state.extra?.toString(),
+                                ),
+                              );
+                            },
+                            redirect: loggedOutRedirect,
+                          ),
+                          GoRoute(
+                            path: '3pid',
+                            pageBuilder: (context, state) => defaultPageBuilder(
+                              context,
+                              state,
+                              const Settings3Pid(),
+                            ),
+                            redirect: loggedOutRedirect,
+                          ),
+                        ],
+                      ),
+                    ],
+                    redirect: loggedOutRedirect,
+                  ),
+                ],
+              ),
+              GoRoute(
+                path: ':roomid',
+                parentNavigatorKey: AppRoutes.rootNavigatorKey,
+                pageBuilder: (context, state) {
+                  final body = state.uri.queryParameters['body'];
+                  var shareItems = state.extra is List<ShareItem>
+                      ? state.extra as List<ShareItem>
+                      : null;
+                  if (body != null && body.isNotEmpty) {
+                    shareItems ??= [];
+                    shareItems.add(TextShareItem(body));
+                  }
+                  return defaultPageBuilder(
                     context,
                     state,
                     ChatPage(
                       roomId: state.pathParameters['roomid']!,
+                      shareItems: shareItems,
                       eventId: state.uri.queryParameters['event'],
                     ),
+                  );
+                },
+                redirect: loggedOutRedirect,
+                routes: [
+                  GoRoute(
+                    path: 'search',
+                    parentNavigatorKey: AppRoutes.rootNavigatorKey,
+                    pageBuilder: (context, state) => defaultPageBuilder(
+                      context,
+                      state,
+                      ChatSearchPage(
+                        roomId: state.pathParameters['roomid']!,
+                      ),
+                    ),
+                    redirect: loggedOutRedirect,
                   ),
-                  redirect: loggedOutRedirect,
-                ),
-              ],
-              redirect: loggedOutRedirect,
-            ),
-            GoRoute(
-              path: 'newprivatechat',
-              pageBuilder: (context, state) => defaultPageBuilder(
-                context,
-                state,
-                const NewPrivateChat(),
-              ),
-              redirect: loggedOutRedirect,
-            ),
-            GoRoute(
-              path: 'newgroup',
-              pageBuilder: (context, state) => defaultPageBuilder(
-                context,
-                state,
-                const NewGroup(),
-              ),
-              redirect: loggedOutRedirect,
-            ),
-            GoRoute(
-              path: 'newspace',
-              pageBuilder: (context, state) => defaultPageBuilder(
-                context,
-                state,
-                const NewGroup(createGroupType: CreateGroupType.space),
-              ),
-              redirect: loggedOutRedirect,
-            ),
-            ShellRoute(
-              pageBuilder: (context, state, child) => defaultPageBuilder(
-                context,
-                state,
-                FluffyThemes.isColumnMode(context)
-                    ? TwoColumnLayout(
-                        mainView: Settings(key: state.pageKey),
-                        sideView: child,
-                      )
-                    : child,
-              ),
-              routes: [
-                GoRoute(
-                  path: 'settings',
-                  pageBuilder: (context, state) => defaultPageBuilder(
-                    context,
-                    state,
-                    FluffyThemes.isColumnMode(context)
-                        ? const EmptyPage()
-                        : const Settings(),
+                  GoRoute(
+                    path: 'encryption',
+                    parentNavigatorKey: AppRoutes.rootNavigatorKey,
+                    pageBuilder: (context, state) => defaultPageBuilder(
+                      context,
+                      state,
+                      const ChatEncryptionSettings(),
+                    ),
+                    redirect: loggedOutRedirect,
                   ),
-                  routes: [
-                    GoRoute(
-                      path: 'notifications',
-                      pageBuilder: (context, state) => defaultPageBuilder(
-                        context,
-                        state,
-                        const SettingsNotifications(),
+                  GoRoute(
+                    path: 'invite',
+                    parentNavigatorKey: AppRoutes.rootNavigatorKey,
+                    pageBuilder: (context, state) => defaultPageBuilder(
+                      context,
+                      state,
+                      InvitationSelection(
+                        roomId: state.pathParameters['roomid']!,
                       ),
-                      redirect: loggedOutRedirect,
                     ),
-                    GoRoute(
-                      path: 'style',
-                      pageBuilder: (context, state) => defaultPageBuilder(
-                        context,
-                        state,
-                        const SettingsStyle(),
+                    redirect: loggedOutRedirect,
+                  ),
+                  GoRoute(
+                    path: 'details',
+                    parentNavigatorKey: AppRoutes.rootNavigatorKey,
+                    pageBuilder: (context, state) => defaultPageBuilder(
+                      context,
+                      state,
+                      ChatDetails(
+                        roomId: state.pathParameters['roomid']!,
                       ),
-                      redirect: loggedOutRedirect,
                     ),
-                    GoRoute(
-                      path: 'devices',
-                      pageBuilder: (context, state) => defaultPageBuilder(
-                        context,
-                        state,
-                        const DevicesSettings(),
-                      ),
-                      redirect: loggedOutRedirect,
-                    ),
-                    GoRoute(
-                      path: 'chat',
-                      pageBuilder: (context, state) => defaultPageBuilder(
-                        context,
-                        state,
-                        const SettingsChat(),
-                      ),
-                      routes: [
-                        GoRoute(
-                          path: 'emotes',
-                          pageBuilder: (context, state) => defaultPageBuilder(
-                            context,
-                            state,
-                            const EmotesSettings(),
-                          ),
-                        ),
-                      ],
-                      redirect: loggedOutRedirect,
-                    ),
-                    GoRoute(
-                      path: 'addaccount',
-                      redirect: loggedOutRedirect,
-                      pageBuilder: (context, state) => defaultPageBuilder(
-                        context,
-                        state,
-                        const HomeserverPicker(addMultiAccount: true),
-                      ),
-                      routes: [
-                        GoRoute(
-                          path: 'login',
-                          pageBuilder: (context, state) => defaultPageBuilder(
-                            context,
-                            state,
-                            const Login(),
-                          ),
-                          redirect: loggedOutRedirect,
-                        ),
-                      ],
-                    ),
-                    GoRoute(
-                      path: 'homeserver',
-                      pageBuilder: (context, state) {
-                        return defaultPageBuilder(
+                    routes: [
+                      GoRoute(
+                        path: 'access',
+                        pageBuilder: (context, state) => defaultPageBuilder(
                           context,
                           state,
-                          const SettingsHomeserver(),
-                        );
-                      },
-                      redirect: loggedOutRedirect,
-                    ),
-                    GoRoute(
-                      path: 'security',
-                      redirect: loggedOutRedirect,
-                      pageBuilder: (context, state) => defaultPageBuilder(
-                        context,
-                        state,
-                        const SettingsSecurity(),
-                      ),
-                      routes: [
-                        GoRoute(
-                          path: 'password',
-                          pageBuilder: (context, state) {
-                            return defaultPageBuilder(
-                              context,
-                              state,
-                              const SettingsPassword(),
-                            );
-                          },
-                          redirect: loggedOutRedirect,
-                        ),
-                        GoRoute(
-                          path: 'ignorelist',
-                          pageBuilder: (context, state) {
-                            return defaultPageBuilder(
-                              context,
-                              state,
-                              SettingsIgnoreList(
-                                initialUserId: state.extra?.toString(),
-                              ),
-                            );
-                          },
-                          redirect: loggedOutRedirect,
-                        ),
-                        GoRoute(
-                          path: '3pid',
-                          pageBuilder: (context, state) => defaultPageBuilder(
-                            context,
-                            state,
-                            const Settings3Pid(),
+                          ChatAccessSettings(
+                            roomId: state.pathParameters['roomid']!,
                           ),
-                          redirect: loggedOutRedirect,
                         ),
-                      ],
-                    ),
-                  ],
-                  redirect: loggedOutRedirect,
-                ),
-              ],
-            ),
-            GoRoute(
-              path: ':roomid',
-              pageBuilder: (context, state) {
-                final body = state.uri.queryParameters['body'];
-                var shareItems = state.extra is List<ShareItem>
-                    ? state.extra as List<ShareItem>
-                    : null;
-                if (body != null && body.isNotEmpty) {
-                  shareItems ??= [];
-                  shareItems.add(TextShareItem(body));
-                }
-                return defaultPageBuilder(
-                  context,
-                  state,
-                  ChatPage(
-                    roomId: state.pathParameters['roomid']!,
-                    shareItems: shareItems,
-                    eventId: state.uri.queryParameters['event'],
-                  ),
-                );
-              },
-              redirect: loggedOutRedirect,
-              routes: [
-                GoRoute(
-                  path: 'search',
-                  pageBuilder: (context, state) => defaultPageBuilder(
-                    context,
-                    state,
-                    ChatSearchPage(
-                      roomId: state.pathParameters['roomid']!,
-                    ),
-                  ),
-                  redirect: loggedOutRedirect,
-                ),
-                GoRoute(
-                  path: 'encryption',
-                  pageBuilder: (context, state) => defaultPageBuilder(
-                    context,
-                    state,
-                    const ChatEncryptionSettings(),
-                  ),
-                  redirect: loggedOutRedirect,
-                ),
-                GoRoute(
-                  path: 'invite',
-                  pageBuilder: (context, state) => defaultPageBuilder(
-                    context,
-                    state,
-                    InvitationSelection(
-                      roomId: state.pathParameters['roomid']!,
-                    ),
-                  ),
-                  redirect: loggedOutRedirect,
-                ),
-                GoRoute(
-                  path: 'details',
-                  pageBuilder: (context, state) => defaultPageBuilder(
-                    context,
-                    state,
-                    ChatDetails(
-                      roomId: state.pathParameters['roomid']!,
-                    ),
-                  ),
-                  routes: [
-                    GoRoute(
-                      path: 'access',
-                      pageBuilder: (context, state) => defaultPageBuilder(
-                        context,
-                        state,
-                        ChatAccessSettings(
-                          roomId: state.pathParameters['roomid']!,
+                        redirect: loggedOutRedirect,
+                      ),
+                      GoRoute(
+                        path: 'members',
+                        pageBuilder: (context, state) => defaultPageBuilder(
+                          context,
+                          state,
+                          ChatMembersPage(
+                            roomId: state.pathParameters['roomid']!,
+                          ),
                         ),
+                        redirect: loggedOutRedirect,
                       ),
-                      redirect: loggedOutRedirect,
-                    ),
-                    GoRoute(
-                      path: 'members',
-                      pageBuilder: (context, state) => defaultPageBuilder(
-                        context,
-                        state,
-                        ChatMembersPage(
-                          roomId: state.pathParameters['roomid']!,
+                      GoRoute(
+                        path: 'permissions',
+                        pageBuilder: (context, state) => defaultPageBuilder(
+                          context,
+                          state,
+                          const ChatPermissionsSettings(),
                         ),
+                        redirect: loggedOutRedirect,
                       ),
-                      redirect: loggedOutRedirect,
-                    ),
-                    GoRoute(
-                      path: 'permissions',
-                      pageBuilder: (context, state) => defaultPageBuilder(
-                        context,
-                        state,
-                        const ChatPermissionsSettings(),
-                      ),
-                      redirect: loggedOutRedirect,
-                    ),
-                    GoRoute(
-                      path: 'invite',
-                      pageBuilder: (context, state) => defaultPageBuilder(
-                        context,
-                        state,
-                        InvitationSelection(
-                          roomId: state.pathParameters['roomid']!,
+                      GoRoute(
+                        path: 'invite',
+                        pageBuilder: (context, state) => defaultPageBuilder(
+                          context,
+                          state,
+                          InvitationSelection(
+                            roomId: state.pathParameters['roomid']!,
+                          ),
                         ),
+                        redirect: loggedOutRedirect,
                       ),
-                      redirect: loggedOutRedirect,
-                    ),
-                    GoRoute(
-                      path: 'multiple_emotes',
-                      pageBuilder: (context, state) => defaultPageBuilder(
-                        context,
-                        state,
-                        const MultipleEmotesSettings(),
+                      GoRoute(
+                        path: 'multiple_emotes',
+                        pageBuilder: (context, state) => defaultPageBuilder(
+                          context,
+                          state,
+                          const MultipleEmotesSettings(),
+                        ),
+                        redirect: loggedOutRedirect,
                       ),
-                      redirect: loggedOutRedirect,
-                    ),
-                    GoRoute(
-                      path: 'emotes',
-                      pageBuilder: (context, state) => defaultPageBuilder(
-                        context,
-                        state,
-                        const EmotesSettings(),
+                      GoRoute(
+                        path: 'emotes',
+                        parentNavigatorKey: AppRoutes.rootNavigatorKey,
+                        pageBuilder: (context, state) => defaultPageBuilder(
+                          context,
+                          state,
+                          const EmotesSettings(),
+                        ),
+                        redirect: loggedOutRedirect,
                       ),
-                      redirect: loggedOutRedirect,
-                    ),
-                    GoRoute(
-                      path: 'emotes/:state_key',
-                      pageBuilder: (context, state) => defaultPageBuilder(
-                        context,
-                        state,
-                        const EmotesSettings(),
+                      GoRoute(
+                        path: 'emotes/:state_key',
+                        pageBuilder: (context, state) => defaultPageBuilder(
+                          context,
+                          state,
+                          const EmotesSettings(),
+                        ),
+                        redirect: loggedOutRedirect,
                       ),
-                      redirect: loggedOutRedirect,
-                    ),
-                  ],
-                  redirect: loggedOutRedirect,
-                ),
-              ],
-            ),
-          ],
-        ),
+                    ],
+                    redirect: loggedOutRedirect,
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ],),
+        StatefulShellBranch(routes: <GoRoute>[
+          GoRoute(
+            path: '/payment',
+            builder: (BuildContext context, GoRouterState state) => const PaymentTabPage(),
+          ),
+        ],),
       ],
     ),
+    // ShellRoute(
+    //   // Never use a transition on the shell route. Changing the PageBuilder
+    //   // here based on a MediaQuery causes the child to briefly be rendered
+    //   // twice with the same GlobalKey, blowing up the rendering.
+    //   pageBuilder: (context, state, child) => noTransitionPageBuilder(
+    //     context,
+    //     state,
+    //     FluffyThemes.isColumnMode(context) &&
+    //             state.fullPath?.startsWith('/rooms/settings') == false
+    //         ? TwoColumnLayout(
+    //             mainView: ChatList(
+    //               activeChat: state.pathParameters['roomid'],
+    //               displayNavigationRail:
+    //                   state.path?.startsWith('/rooms/settings') != true,
+    //             ),
+    //             sideView: child,
+    //           )
+    //         : child,
+    //   ),
+    //   routes: [
+    //     GoRoute(
+    //       path: '/rooms',
+    //       redirect: loggedOutRedirect,
+    //       pageBuilder: (context, state) => defaultPageBuilder(
+    //         context,
+    //         state,
+    //         FluffyThemes.isColumnMode(context)
+    //             ? const EmptyPage()
+    //             : ChatList(
+    //                 activeChat: state.pathParameters['roomid'],
+    //               ),
+    //       ),
+    //       routes: [
+    //         GoRoute(
+    //           path: 'archive',
+    //           pageBuilder: (context, state) => defaultPageBuilder(
+    //             context,
+    //             state,
+    //             const Archive(),
+    //           ),
+    //           routes: [
+    //             GoRoute(
+    //               path: ':roomid',
+    //               pageBuilder: (context, state) => defaultPageBuilder(
+    //                 context,
+    //                 state,
+    //                 ChatPage(
+    //                   roomId: state.pathParameters['roomid']!,
+    //                   eventId: state.uri.queryParameters['event'],
+    //                 ),
+    //               ),
+    //               redirect: loggedOutRedirect,
+    //             ),
+    //           ],
+    //           redirect: loggedOutRedirect,
+    //         ),
+    //         GoRoute(
+    //           path: 'newprivatechat',
+    //           pageBuilder: (context, state) => defaultPageBuilder(
+    //             context,
+    //             state,
+    //             const NewPrivateChat(),
+    //           ),
+    //           redirect: loggedOutRedirect,
+    //         ),
+    //         GoRoute(
+    //           path: 'newgroup',
+    //           pageBuilder: (context, state) => defaultPageBuilder(
+    //             context,
+    //             state,
+    //             const NewGroup(),
+    //           ),
+    //           redirect: loggedOutRedirect,
+    //         ),
+    //         GoRoute(
+    //           path: 'newspace',
+    //           pageBuilder: (context, state) => defaultPageBuilder(
+    //             context,
+    //             state,
+    //             const NewGroup(createGroupType: CreateGroupType.space),
+    //           ),
+    //           redirect: loggedOutRedirect,
+    //         ),
+    //         ShellRoute(
+    //           pageBuilder: (context, state, child) => defaultPageBuilder(
+    //             context,
+    //             state,
+    //             FluffyThemes.isColumnMode(context)
+    //                 ? TwoColumnLayout(
+    //                     mainView: Settings(key: state.pageKey),
+    //                     sideView: child,
+    //                   )
+    //                 : child,
+    //           ),
+    //           routes: [
+    //             GoRoute(
+    //               path: 'settings',
+    //               pageBuilder: (context, state) => defaultPageBuilder(
+    //                 context,
+    //                 state,
+    //                 FluffyThemes.isColumnMode(context)
+    //                     ? const EmptyPage()
+    //                     : const Settings(),
+    //               ),
+    //               routes: [
+    //                 GoRoute(
+    //                   path: 'notifications',
+    //                   pageBuilder: (context, state) => defaultPageBuilder(
+    //                     context,
+    //                     state,
+    //                     const SettingsNotifications(),
+    //                   ),
+    //                   redirect: loggedOutRedirect,
+    //                 ),
+    //                 GoRoute(
+    //                   path: 'style',
+    //                   pageBuilder: (context, state) => defaultPageBuilder(
+    //                     context,
+    //                     state,
+    //                     const SettingsStyle(),
+    //                   ),
+    //                   redirect: loggedOutRedirect,
+    //                 ),
+    //                 GoRoute(
+    //                   path: 'devices',
+    //                   pageBuilder: (context, state) => defaultPageBuilder(
+    //                     context,
+    //                     state,
+    //                     const DevicesSettings(),
+    //                   ),
+    //                   redirect: loggedOutRedirect,
+    //                 ),
+    //                 GoRoute(
+    //                   path: 'chat',
+    //                   pageBuilder: (context, state) => defaultPageBuilder(
+    //                     context,
+    //                     state,
+    //                     const SettingsChat(),
+    //                   ),
+    //                   routes: [
+    //                     GoRoute(
+    //                       path: 'emotes',
+    //                       pageBuilder: (context, state) => defaultPageBuilder(
+    //                         context,
+    //                         state,
+    //                         const EmotesSettings(),
+    //                       ),
+    //                     ),
+    //                   ],
+    //                   redirect: loggedOutRedirect,
+    //                 ),
+    //                 GoRoute(
+    //                   path: 'addaccount',
+    //                   redirect: loggedOutRedirect,
+    //                   pageBuilder: (context, state) => defaultPageBuilder(
+    //                     context,
+    //                     state,
+    //                     const HomeserverPicker(addMultiAccount: true),
+    //                   ),
+    //                   routes: [
+    //                     GoRoute(
+    //                       path: 'login',
+    //                       pageBuilder: (context, state) => defaultPageBuilder(
+    //                         context,
+    //                         state,
+    //                         const Login(),
+    //                       ),
+    //                       redirect: loggedOutRedirect,
+    //                     ),
+    //                   ],
+    //                 ),
+    //                 GoRoute(
+    //                   path: 'homeserver',
+    //                   pageBuilder: (context, state) {
+    //                     return defaultPageBuilder(
+    //                       context,
+    //                       state,
+    //                       const SettingsHomeserver(),
+    //                     );
+    //                   },
+    //                   redirect: loggedOutRedirect,
+    //                 ),
+    //                 GoRoute(
+    //                   path: 'security',
+    //                   redirect: loggedOutRedirect,
+    //                   pageBuilder: (context, state) => defaultPageBuilder(
+    //                     context,
+    //                     state,
+    //                     const SettingsSecurity(),
+    //                   ),
+    //                   routes: [
+    //                     GoRoute(
+    //                       path: 'password',
+    //                       pageBuilder: (context, state) {
+    //                         return defaultPageBuilder(
+    //                           context,
+    //                           state,
+    //                           const SettingsPassword(),
+    //                         );
+    //                       },
+    //                       redirect: loggedOutRedirect,
+    //                     ),
+    //                     GoRoute(
+    //                       path: 'ignorelist',
+    //                       pageBuilder: (context, state) {
+    //                         return defaultPageBuilder(
+    //                           context,
+    //                           state,
+    //                           SettingsIgnoreList(
+    //                             initialUserId: state.extra?.toString(),
+    //                           ),
+    //                         );
+    //                       },
+    //                       redirect: loggedOutRedirect,
+    //                     ),
+    //                     GoRoute(
+    //                       path: '3pid',
+    //                       pageBuilder: (context, state) => defaultPageBuilder(
+    //                         context,
+    //                         state,
+    //                         const Settings3Pid(),
+    //                       ),
+    //                       redirect: loggedOutRedirect,
+    //                     ),
+    //                   ],
+    //                 ),
+    //               ],
+    //               redirect: loggedOutRedirect,
+    //             ),
+    //           ],
+    //         ),
+    //         GoRoute(
+    //           path: ':roomid',
+    //           pageBuilder: (context, state) {
+    //             final body = state.uri.queryParameters['body'];
+    //             var shareItems = state.extra is List<ShareItem>
+    //                 ? state.extra as List<ShareItem>
+    //                 : null;
+    //             if (body != null && body.isNotEmpty) {
+    //               shareItems ??= [];
+    //               shareItems.add(TextShareItem(body));
+    //             }
+    //             return defaultPageBuilder(
+    //               context,
+    //               state,
+    //               ChatPage(
+    //                 roomId: state.pathParameters['roomid']!,
+    //                 shareItems: shareItems,
+    //                 eventId: state.uri.queryParameters['event'],
+    //               ),
+    //             );
+    //           },
+    //           redirect: loggedOutRedirect,
+    //           routes: [
+    //             GoRoute(
+    //               path: 'search',
+    //               pageBuilder: (context, state) => defaultPageBuilder(
+    //                 context,
+    //                 state,
+    //                 ChatSearchPage(
+    //                   roomId: state.pathParameters['roomid']!,
+    //                 ),
+    //               ),
+    //               redirect: loggedOutRedirect,
+    //             ),
+    //             GoRoute(
+    //               path: 'encryption',
+    //               pageBuilder: (context, state) => defaultPageBuilder(
+    //                 context,
+    //                 state,
+    //                 const ChatEncryptionSettings(),
+    //               ),
+    //               redirect: loggedOutRedirect,
+    //             ),
+    //             GoRoute(
+    //               path: 'invite',
+    //               pageBuilder: (context, state) => defaultPageBuilder(
+    //                 context,
+    //                 state,
+    //                 InvitationSelection(
+    //                   roomId: state.pathParameters['roomid']!,
+    //                 ),
+    //               ),
+    //               redirect: loggedOutRedirect,
+    //             ),
+    //             GoRoute(
+    //               path: 'details',
+    //               pageBuilder: (context, state) => defaultPageBuilder(
+    //                 context,
+    //                 state,
+    //                 ChatDetails(
+    //                   roomId: state.pathParameters['roomid']!,
+    //                 ),
+    //               ),
+    //               routes: [
+    //                 GoRoute(
+    //                   path: 'access',
+    //                   pageBuilder: (context, state) => defaultPageBuilder(
+    //                     context,
+    //                     state,
+    //                     ChatAccessSettings(
+    //                       roomId: state.pathParameters['roomid']!,
+    //                     ),
+    //                   ),
+    //                   redirect: loggedOutRedirect,
+    //                 ),
+    //                 GoRoute(
+    //                   path: 'members',
+    //                   pageBuilder: (context, state) => defaultPageBuilder(
+    //                     context,
+    //                     state,
+    //                     ChatMembersPage(
+    //                       roomId: state.pathParameters['roomid']!,
+    //                     ),
+    //                   ),
+    //                   redirect: loggedOutRedirect,
+    //                 ),
+    //                 GoRoute(
+    //                   path: 'permissions',
+    //                   pageBuilder: (context, state) => defaultPageBuilder(
+    //                     context,
+    //                     state,
+    //                     const ChatPermissionsSettings(),
+    //                   ),
+    //                   redirect: loggedOutRedirect,
+    //                 ),
+    //                 GoRoute(
+    //                   path: 'invite',
+    //                   pageBuilder: (context, state) => defaultPageBuilder(
+    //                     context,
+    //                     state,
+    //                     InvitationSelection(
+    //                       roomId: state.pathParameters['roomid']!,
+    //                     ),
+    //                   ),
+    //                   redirect: loggedOutRedirect,
+    //                 ),
+    //                 GoRoute(
+    //                   path: 'multiple_emotes',
+    //                   pageBuilder: (context, state) => defaultPageBuilder(
+    //                     context,
+    //                     state,
+    //                     const MultipleEmotesSettings(),
+    //                   ),
+    //                   redirect: loggedOutRedirect,
+    //                 ),
+    //                 GoRoute(
+    //                   path: 'emotes',
+    //                   pageBuilder: (context, state) => defaultPageBuilder(
+    //                     context,
+    //                     state,
+    //                     const EmotesSettings(),
+    //                   ),
+    //                   redirect: loggedOutRedirect,
+    //                 ),
+    //                 GoRoute(
+    //                   path: 'emotes/:state_key',
+    //                   pageBuilder: (context, state) => defaultPageBuilder(
+    //                     context,
+    //                     state,
+    //                     const EmotesSettings(),
+    //                   ),
+    //                   redirect: loggedOutRedirect,
+    //                 ),
+    //               ],
+    //               redirect: loggedOutRedirect,
+    //             ),
+    //           ],
+    //         ),
+    //       ],
+    //     ),
+    //   ],
+    // ),
   ];
 
   static Page noTransitionPageBuilder(
