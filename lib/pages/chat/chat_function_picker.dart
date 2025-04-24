@@ -34,10 +34,10 @@ class ChatFunctionPicker extends StatelessWidget {
                       mainAxisCellCount: 1,
                       child: TextButton(
                         style: TextButton.styleFrom(padding: EdgeInsets.zero),
-                        onPressed: () => controller.onAddPopupMenuButtonSelected(tool.choice()),
+                        onPressed: () => controller.onAddPopupMenuButtonSelected(tool),
                         child: Container(
                           constraints: const BoxConstraints(
-                            minWidth: 70,
+                            minWidth: 75,
                           ),
                           child: Column(
                             mainAxisSize: MainAxisSize.min,
@@ -55,7 +55,7 @@ class ChatFunctionPicker extends StatelessWidget {
                               const SizedBox(height: 4),
                               Text(
                                 tool.title(),
-                                style: const TextStyle(fontSize: 14, color: Color(0xFF262626)),
+                                style: const TextStyle(fontSize: 13, color: Color(0xFF262626)),
                               )
                             ],
                           )

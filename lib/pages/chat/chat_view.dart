@@ -191,6 +191,7 @@ class ChatView extends StatelessWidget {
               appbarBottomHeight += ChatAppBarListTile.fixedHeight;
             }
             return Scaffold(
+              backgroundColor: Colors.white,
               appBar: AppBar(
                 actionsIconTheme: IconThemeData(
                   color: controller.selectedEvents.isEmpty
@@ -272,9 +273,9 @@ class ChatView extends StatelessWidget {
                   : null,
               body: Stack(
                 children: [
-                  Positioned.fill(
-                    child: Image.asset('assets/chat_bg.png', fit: BoxFit.fill),
-                  ),
+                  // Positioned.fill(
+                  //   child: Image.asset('assets/chat_bg.png', fit: BoxFit.fill),
+                  // ),
                   Positioned.fill(
                     child: DropTarget(
                       onDragDone: controller.onDragDone,

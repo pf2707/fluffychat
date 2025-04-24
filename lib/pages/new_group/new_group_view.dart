@@ -77,7 +77,7 @@ class NewGroupView extends StatelessWidget {
               padding: const EdgeInsets.symmetric(horizontal: 24.0),
               child: TextField(
                 autofocus: true,
-                controller: controller.nameController,
+                controller: controller.nameEditController,
                 autocorrect: false,
                 readOnly: controller.loading,
                 decoration: InputDecoration(

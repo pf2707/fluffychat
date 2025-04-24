@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 
 import 'package:flutter_gen/gen_l10n/l10n.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:go_router/go_router.dart';
 import 'package:matrix/matrix.dart';
 
 import 'package:fluffychat/config/app_config.dart';
@@ -83,7 +84,7 @@ class ChatListViewBody extends StatelessWidget {
                 delegate: SliverChildListDelegate(
                   [
                     if (controller.isSearchMode)...[
-                      _actionRow(),
+                      _actionRow(context),
                       const SizedBox(height: 24),
                       SearchTitle(
                         title: L10n.of(context).chats,
@@ -316,7 +317,7 @@ class ChatListViewBody extends StatelessWidget {
     );
   }
 
-  _actionRow() {
+  _actionRow(BuildContext context) {
     Widget actionRow(String icon, String title, Function action) {
       return InkWell(
         onTap: () => action(),
@@ -357,7 +358,7 @@ class ChatListViewBody extends StatelessWidget {
       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
       children: [
         actionRow("ic_add_contact.svg", "New Contact", () {}),
-        actionRow("ic_add_group.svg", "New Group", () {}),
+        actionRow("ic_add_group.svg", "New Group", () => context.go('/rooms/newgroup')),
         actionRow("ic_global.svg", "Find Group", () {}),
       ],
     );

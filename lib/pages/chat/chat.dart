@@ -143,7 +143,7 @@ enum EnumFunctionTool {
   String choice() {
     switch (this) {
       case EnumFunctionTool.camera: return "camera";
-      case EnumFunctionTool.photo: return "image";
+      case EnumFunctionTool.photo: return "media";
       case EnumFunctionTool.document: return "file";
       case EnumFunctionTool.contact: return "contact";
       case EnumFunctionTool.location: return "location";
@@ -622,7 +622,7 @@ class ChatController extends State<ChatPageWithRoom>
           room: room,
           outerContext: context,
         ),
-      )
+      ),
       // builder: (c) => SendFileDialog(
       //   files: files,
       //   room: room,
@@ -732,6 +732,10 @@ class ChatController extends State<ChatPageWithRoom>
     setState(() {
       replyEvent = null;
     });
+  }
+
+  void sendContactsAction() {
+    context.go('/rooms/${room.id}/share_contact');
   }
 
   void hideEmojiPicker() {
@@ -1226,25 +1230,37 @@ class ChatController extends State<ChatPageWithRoom>
     FocusScope.of(context).requestFocus(inputFocus);
   }
 
-  void onAddPopupMenuButtonSelected(String choice) {
-    if (choice == 'file') {
-      sendFileAction();
+  void onAddPopupMenuButtonSelected(EnumFunctionTool choice) {
+    switch (choice) {
+      case EnumFunctionTool.photo: sendFileAction(type: FileSelectorType.media); break;
+      case EnumFunctionTool.camera: openCameraAction(); break;
+      case EnumFunctionTool.document: sendFileAction(); break;
+      case EnumFunctionTool.contact: sendContactsAction(); break;
+      case EnumFunctionTool.location: sendLocationAction(); break;
+      case EnumFunctionTool.audio: break;
+      default: break;
     }
-    if (choice == 'image') {
-      sendFileAction(type: FileSelectorType.images);
-    }
-    if (choice == 'video') {
-      sendFileAction(type: FileSelectorType.videos);
-    }
-    if (choice == 'camera') {
-      openCameraAction();
-    }
-    if (choice == 'camera-video') {
-      openVideoCameraAction();
-    }
-    if (choice == 'location') {
-      sendLocationAction();
-    }
+    // if (choice == 'file') {
+    //   sendFileAction();
+    // }
+    // if (choice == 'media') {
+    //   sendFileAction(type: FileSelectorType.media);
+    // }
+    // if (choice == 'image') {
+    //   sendFileAction(type: FileSelectorType.images);
+    // }
+    // if (choice == 'video') {
+    //   sendFileAction(type: FileSelectorType.videos);
+    // }
+    // if (choice == 'camera') {
+    //   openCameraAction();
+    // }
+    // if (choice == 'camera-video') {
+    //   openVideoCameraAction();
+    // }
+    // if (choice == 'location') {
+    //   sendLocationAction();
+    // }
   }
 
   unpinEvent(String eventId) async {

@@ -64,18 +64,21 @@ class EventVideoPlayerState extends State<EventVideoPlayer> {
         }
         _tmpFile = file;
       }
+      final aspectRatio = widget.event.videoAspectRatio;
       final tmpFile = _tmpFile;
       final networkUri = _networkUri;
       if (kIsWeb && networkUri != null && _chewieManager == null) {
         _chewieManager ??= ChewieController(
           videoPlayerController:
               VideoPlayerController.networkUrl(Uri.parse(networkUri)),
+          aspectRatio: aspectRatio,
           autoPlay: true,
           autoInitialize: true,
         );
       } else if (!kIsWeb && tmpFile != null && _chewieManager == null) {
         _chewieManager ??= ChewieController(
           useRootNavigator: false,
+          aspectRatio: aspectRatio,
           videoPlayerController: VideoPlayerController.file(tmpFile),
           autoPlay: true,
           autoInitialize: true,
@@ -122,10 +125,11 @@ class EventVideoPlayerState extends State<EventVideoPlayer> {
     return Column(
       mainAxisSize: MainAxisSize.min,
       // spacing: 8,
+      crossAxisAlignment: CrossAxisAlignment.center,
       children: [
         Material(
           color: Colors.black,
-          borderRadius: BorderRadius.circular(AppConfig.borderRadius),
+          borderRadius: const BorderRadius.all(Radius.circular(AppConfig.borderRadius)),
           child: SizedBox(
             height: width,
             child: chewieManager != null
@@ -141,10 +145,13 @@ class EventVideoPlayerState extends State<EventVideoPlayer> {
                           ),
                         )
                       else
-                        BlurHash(
-                          blurhash: blurHash,
-                          width: width,
-                          height: width,
+                        ClipRRect(
+                          borderRadius: const BorderRadius.all(Radius.circular(AppConfig.borderRadius)),
+                          child: BlurHash(
+                            blurhash: blurHash,
+                            width: double.infinity,
+                            height: width,
+                          ),
                         ),
                       Center(
                         child: IconButton(
@@ -172,7 +179,7 @@ class EventVideoPlayerState extends State<EventVideoPlayer> {
                   ),
           ),
         ),
-        if (fileDescription != null && textColor != null && linkColor != null)
+        if (fileDescription != null && textColor != null)
           SizedBox(
             width: width,
             child: Linkify(

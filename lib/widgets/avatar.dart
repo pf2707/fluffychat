@@ -49,7 +49,7 @@ class Avatar extends StatelessWidget {
     final noPic = mxContent == null ||
         mxContent.toString().isEmpty ||
         mxContent.toString() == 'null';
-    final textColor = name?.lightColorAvatar;
+    final textColor = theme.primaryColor; //name?.lightColorAvatar;
     final textWidget = Container(
       color: textColor,
       alignment: Alignment.center,

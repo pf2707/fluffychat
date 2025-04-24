@@ -1,3 +1,4 @@
+import 'package:fluffychat/pages/image_viewer/media_viewer.dart';
 import 'package:flutter/material.dart';
 
 import 'package:flutter_linkify/flutter_linkify.dart';
@@ -67,7 +68,7 @@ class ImageBubble extends StatelessWidget {
     if (!tapToView) return;
     showDialog(
       context: context,
-      builder: (_) => ImageViewer(
+      builder: (_) => MediaViewer(
         event,
         timeline: timeline,
         outerContext: context,
@@ -77,7 +78,7 @@ class ImageBubble extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
+    // final theme = Theme.of(context);
 
     final borderRadius =
         this.borderRadius ?? BorderRadius.circular(AppConfig.borderRadius);

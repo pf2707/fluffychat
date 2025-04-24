@@ -200,6 +200,7 @@ abstract class AppRoutes {
               ),
               GoRoute(
                 path: 'newgroup',
+                parentNavigatorKey: AppRoutes.rootNavigatorKey,
                 pageBuilder: (context, state) => defaultPageBuilder(
                   context,
                   state,
@@ -418,6 +419,19 @@ abstract class AppRoutes {
                       state,
                       InvitationSelection(
                         roomId: state.pathParameters['roomid']!,
+                      ),
+                    ),
+                    redirect: loggedOutRedirect,
+                  ),
+                  GoRoute(
+                    path: 'share_contact',
+                    parentNavigatorKey: AppRoutes.rootNavigatorKey,
+                    pageBuilder: (context, state) => defaultPageBuilder(
+                      context,
+                      state,
+                      InvitationSelection(
+                        roomId: state.pathParameters['roomid']!,
+                        mode: InvitationMode.shareContact,
                       ),
                     ),
                     redirect: loggedOutRedirect,

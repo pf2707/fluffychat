@@ -1,3 +1,4 @@
+import 'package:fluffychat/pages/chat/events/custom/message_type_extension.dart';
 import 'package:flutter/material.dart';
 
 import 'package:flutter_gen/gen_l10n/l10n.dart';
@@ -308,45 +309,37 @@ class ChatListItem extends StatelessWidget {
                                                 room.lastEvent?.senderId),
                                       )
                                     : null,
-                                initialData:
-                                    lastEvent?.calcLocalizedBodyFallback(
-                                  MatrixLocals(L10n.of(context)),
-                                  hideReply: true,
-                                  hideEdit: true,
-                                  plaintextBody: true,
-                                  removeMarkdown: true,
-                                  withSenderNamePrefix: (!isDirectChat ||
-                                      directChatMatrixId !=
-                                          room.lastEvent?.senderId),
-                                ),
-                                builder: (context, snapshot) => Text(
-                                  room.membership == Membership.invite
-                                      ? room
-                                              .getState(
-                                                EventTypes.RoomMember,
-                                                room.client.userID!,
-                                              )
-                                              ?.content
-                                              .tryGet<String>('reason') ??
-                                          (isDirectChat
-                                              ? L10n.of(context).newChatRequest
-                                              : L10n.of(context)
-                                                  .inviteGroupChat)
-                                      : snapshot.data ??
-                                          L10n.of(context).emptyChat,
-                                  softWrap: false,
-                                  maxLines: room.notificationCount >= 1 ? 2 : 1,
-                                  overflow: TextOverflow.ellipsis,
-                                  style: TextStyle(
-                                    color: const Color(0xFF626167),
-                                    // color: unread || room.hasNewMessages
-                                    //     ? theme.colorScheme.onSurface
-                                    //     : theme.colorScheme.outline,
-                                    decoration: room.lastEvent?.redacted == true
-                                        ? TextDecoration.lineThrough
-                                        : null,
-                                  ),
-                                ),
+                                initialData: _initialLastMessage(context, lastEvent, isDirectChat, directChatMatrixId),
+                                builder: (context, snapshot) {
+                                  return Text(
+                                    room.membership == Membership.invite
+                                        ? room
+                                        .getState(
+                                      EventTypes.RoomMember,
+                                      room.client.userID!,
+                                    )
+                                        ?.content
+                                        .tryGet<String>('reason') ??
+                                        (isDirectChat
+                                            ? L10n.of(context).newChatRequest
+                                            : L10n.of(context)
+                                            .inviteGroupChat)
+                                        : snapshot.data ??
+                                        L10n.of(context).emptyChat,
+                                    softWrap: false,
+                                    maxLines: room.notificationCount >= 1 ? 2 : 1,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: TextStyle(
+                                      color: const Color(0xFF626167),
+                                      // color: unread || room.hasNewMessages
+                                      //     ? theme.colorScheme.onSurface
+                                      //     : theme.colorScheme.outline,
+                                      decoration: room.lastEvent?.redacted == true
+                                          ? TextDecoration.lineThrough
+                                          : null,
+                                    ),
+                                  );
+                                },
                               ),
                   ),
                   const SizedBox(width: 8),
@@ -400,6 +393,34 @@ class ChatListItem extends StatelessWidget {
           ),
         ),
       ),
+    );
+  }
+
+  String? _initialLastMessage(BuildContext context, Event? lastEvent, bool isDirectChat, String? directChatMatrixId) {
+    final l10n = L10n.of(context);
+    final i18n = MatrixLocals(l10n);
+    final aMemberString = l10n.aMember;
+    if (lastEvent?.messageType == MessageTypesExt.Medias) {
+      final senderNameOrYou = lastEvent?.senderId == room.client.userID
+          ? i18n.you
+          : lastEvent?.senderFromMemoryOrFallback.calcDisplayname(i18n: i18n);
+      return l10n.aUserSentMultipleMedias(senderNameOrYou ?? aMemberString);
+    } else if (lastEvent?.messageType == MessageTypesExt.ShareContacts) {
+      final senderNameOrYou = lastEvent?.senderId == room.client.userID
+          ? i18n.you
+          : lastEvent?.senderFromMemoryOrFallback.calcDisplayname(i18n: i18n);
+      return l10n.aUserSharedContacts(senderNameOrYou ?? aMemberString);
+    }
+
+    return lastEvent?.calcLocalizedBodyFallback(
+      i18n,
+      hideReply: true,
+      hideEdit: true,
+      plaintextBody: true,
+      removeMarkdown: true,
+      withSenderNamePrefix: (!isDirectChat ||
+          directChatMatrixId !=
+              room.lastEvent?.senderId),
     );
   }
 }

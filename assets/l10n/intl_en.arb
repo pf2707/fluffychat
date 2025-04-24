@@ -3206,5 +3206,47 @@
   "recordAVideo": "Record a video",
   "optionalMessage": "(Optional) message...",
   "notSupportedOnThisDevice": "Not supported on this device",
-  "enterNewChat": "Enter new chat"
+  "enterNewChat": "Enter new chat",
+  "sendMedia": "Send Media",
+  "hintInputGroupName": "Input your group name",
+  "hintInputGroupDescription": "Describe your group",
+  "description": "Description",
+  "groupType": "Group Type",
+  "groupTypePublic": "Public Group",
+  "groupTypePrivate": "Private Group",
+  "groupTypePublicCaption": "Public chats can either be created and controlled by\nadministrators or created by users.",
+  "groupTypePrivateCaption": "Private group chats empower you to communicate in\na group at any time.",
+  "groupMembers": "Group Members",
+  "sendingContacts": "Sending contacts",
+  "viewAll": "View all",
+  "andOtherOneContact": "and other 1 contact",
+  "andOtherNContact": "and other {n} contacts",
+  "@andOtherNContact": {
+    "type": "String",
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "contacts": "Contacts",
+  "aUserSentMultipleMedias": "\uD83D\uDCF9 {user} sent multiple medias",
+  "@aUserSentMultipleMedias": {
+    "type": "String",
+    "placeholders": {
+      "user": {
+        "type": "String"
+      }
+    }
+  },
+  "aUserSharedContacts": "\uD83D\uDCC7 {user} shared some contacts",
+  "@aUserSharedContacts": {
+    "type": "String",
+    "placeholders": {
+      "user": {
+        "type": "String"
+      }
+    }
+  },
+  "aMember": "A member"
 }

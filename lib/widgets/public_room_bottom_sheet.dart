@@ -39,7 +39,7 @@ class PublicRoomBottomSheet extends StatelessWidget {
           return chunk.roomId;
         }
         final roomId = chunk != null && knock
-            ? await client.knockRoom(chunk.roomId, serverName: via)
+            ? await client.knockRoom(chunk.roomId, via: via)
             : await client.joinRoom(
                 roomAlias ?? chunk!.roomId,
                 serverName: via,

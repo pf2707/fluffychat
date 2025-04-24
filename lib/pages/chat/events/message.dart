@@ -1,5 +1,6 @@
 import 'dart:ui' as ui;
 
+import 'package:fluffychat/pages/chat/events/custom/message_type_extension.dart';
 import 'package:fluffychat/pages/chat/events/custom/multiple_images_impl.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -138,7 +139,7 @@ class Message extends StatelessWidget {
           ownMessage && previousEventSameSender ? hardCorner : roundedCorner,
     );
     final noBubble = ({
-              MessageTypes.Video,
+              // MessageTypes.Video,
               // MessageTypes.Image,
               MessageTypes.Sticker,
             }.contains(event.messageType) &&
@@ -149,14 +150,15 @@ class Message extends StatelessWidget {
             event.onlyEmotes &&
             event.numberEmotes > 0 &&
             event.numberEmotes <= 3) ||
-        (event.messageType == MessageTypesExt.Images && !MultipleImagesImpl.hasCaption(event));
+        (event.messageType == MessageTypesExt.Medias && !MultipleImagesImpl.hasCaption(event));
     final noPadding = {
       MessageTypes.File,
       MessageTypes.Audio,
-      MessageTypesExt.Images,
+      MessageTypesExt.Medias,
     }.contains(event.messageType);
 
     final smallPadding = {
+      MessageTypes.Video,
       MessageTypes.Image,
       MessageTypes.Location
     }.contains(event.messageType);
@@ -254,6 +256,7 @@ class Message extends StatelessWidget {
                                 mxContent: user.avatarUrl,
                                 name: user.calcDisplayname(),
                                 presenceUserId: user.stateKey,
+                                size: 40,
                                 presenceBackgroundColor:
                                     wallpaperMode ? Colors.transparent : null,
                                 onTap: () => onAvatarTab(event),

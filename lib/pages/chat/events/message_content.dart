@@ -1,8 +1,10 @@
 import 'dart:math';
 
+import 'package:fluffychat/pages/chat/events/custom/message_type_extension.dart';
 import 'package:fluffychat/pages/chat/events/custom/multiple_images_impl.dart';
-import 'package:fluffychat/pages/chat/events/multiple_images_bubble.dart';
-import 'package:fluffychat/utils/client_download_content_extension.dart';
+import 'package:fluffychat/pages/chat/events/multiple_medias_bubble.dart';
+import 'package:fluffychat/pages/chat/events/share_contacts_bubble.dart';
+import 'package:fluffychat/utils/file_description.dart';
 import 'package:flutter/material.dart';
 
 import 'package:flutter_gen/gen_l10n/l10n.dart';
@@ -114,30 +116,42 @@ class MessageContent extends StatelessWidget {
       case EventTypes.Encrypted:
       case EventTypes.Sticker:
         switch (event.messageType) {
-          case MessageTypesExt.Images:
+          case MessageTypesExt.Medias:
             if (MultipleImagesImpl.hasCaption(event)) {
               return _timeBelowStyle(
                 event: event,
-                contentWidget: MultipleImagesBubble(
+                contentWidget: MultipleMediasBubble(
                   event,
                   borderRadius: borderRadius,
                   textColor: textColor,
                   linkColor: linkColor,
+                  timeline: timeline,
                 ),
                 timeRightPadding: 10,
-                timeBottomPadding: 10
+                timeBottomPadding: 10,
               );
             } else {
               return _timeOnTopStyle(
                 event: event,
-                contentWidget: MultipleImagesBubble(
+                contentWidget: MultipleMediasBubble(
                   event,
                   borderRadius: borderRadius,
                   textColor: textColor,
                   linkColor: linkColor,
+                  timeline: timeline,
                 ),
               );
             }
+          case MessageTypesExt.ShareContacts:
+            return _timeBelowStyle(
+              event: event,
+              contentWidget: ShareContactsBubble(
+                event,
+                borderRadius: borderRadius,
+                textColor: textColor,
+                timeline: timeline,
+              ),
+            );
           case MessageTypes.Image:
           case MessageTypes.Sticker:
             if (event.redacted) continue textmessage;
@@ -173,6 +187,7 @@ class MessageContent extends StatelessWidget {
                 borderRadius: borderRadius,
                 timeline: timeline,
                 textColor: textColor,
+                linkColor: linkColor,
               ),
             );
           case CuteEventContent.eventType:
@@ -198,7 +213,20 @@ class MessageContent extends StatelessWidget {
               linkColor: linkColor,
             );
           case MessageTypes.Video:
-            return EventVideoPlayer(event, textColor: textColor);
+
+            if (event.fileDescription != null) {
+              return _timeBelowStyle(
+                event: event,
+                contentWidget: EventVideoPlayer(event, textColor: textColor, linkColor: linkColor,),
+                timeRightPadding: 10,
+                timeBottomPadding: 10,
+              );
+            } else {
+              return _timeOnTopStyle(
+                event: event,
+                contentWidget: EventVideoPlayer(event, textColor: textColor, linkColor: linkColor,),
+              );
+            }
           case MessageTypes.File:
             return MessageDownloadContent(
               event,

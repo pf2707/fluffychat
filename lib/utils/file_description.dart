@@ -5,6 +5,7 @@ extension FileDescriptionExtension on Event {
     if (!{
       MessageTypes.File,
       MessageTypes.Image,
+      MessageTypes.Video,
     }.contains(messageType)) {
       return null;
     }
@@ -15,5 +16,15 @@ extension FileDescriptionExtension on Event {
     final body = content.tryGet<String>('body');
     if (filename != body && body != null && filename != null) return body;
     return null;
+  }
+
+  double? get videoAspectRatio {
+    if (!{
+      MessageTypes.Video,
+    }.contains(messageType)) {
+      return null;
+    }
+    final aspectRatio = content.tryGet<double>('aspect_ratio');
+    return aspectRatio;
   }
 }

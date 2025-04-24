@@ -715,6 +715,14 @@ packages:
       url: "https://github.com/famedly/flutter_typeahead.git"
     source: git
     version: "5.2.0"
+  flutter_video_info:
+    dependency: "direct main"
+    description:
+      name: flutter_video_info
+      sha256: a1f3a7060d55a021e329b4bca8a4c0adb76766bd0c0e432796064647331959a6
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.3.2"
   flutter_web_auth_2:
     dependency: "direct main"
     description:
@@ -1167,10 +1175,10 @@ packages:
     dependency: "direct main"
     description:
       name: matrix
-      sha256: d0da69e5ee8dfc1692c02e4b460a1bc136120f0dcf5e02cf604b23cd39d76903
+      sha256: "829f225f74b2a8c83b6b1f960004ecf742215d9ee9d8cc9e0f1974ff8e281f0f"
       url: "https://pub.dev"
     source: hosted
-    version: "0.38.0"
+    version: "0.39.1"
   meta:
     dependency: transitive
     description:
@@ -1231,10 +1239,10 @@ packages:
     dependency: transitive
     description:
       name: olm
-      sha256: "3306bf534ceb914fd148b3b4a3d603fb5e067b2e6da8304025b47c24cfdf6b46"
+      sha256: "6a3fe1e5170b954dd9e4ba3b27513e6aa9b7591eb7bb0d7f6f32140b7f140c6f"
       url: "https://pub.dev"
     source: hosted
-    version: "2.0.4"
+    version: "3.1.0"
   opus_caf_converter_dart:
     dependency: "direct main"
     description:
@@ -2292,10 +2300,10 @@ packages:
     dependency: "direct main"
     description:
       name: webrtc_interface
-      sha256: "10fc6dc0ac16f909f5e434c18902415211d759313c87261f1e4ec5b4f6a04c26"
+      sha256: e92afec11152a9ccb5c9f35482754edd99696e886ab6acaf90c06dd2d09f09eb
       url: "https://pub.dev"
     source: hosted
-    version: "1.2.1"
+    version: "1.2.2+hotfix.1"
   widget_zoom:
     dependency: "direct main"
     description:

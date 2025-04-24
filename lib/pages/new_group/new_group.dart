@@ -1,5 +1,7 @@
 import 'dart:typed_data';
 
+import 'package:fluffychat/pages/chat/events/custom/matrix_client_extension.dart';
+import 'package:fluffychat/pages/new_group/new_group_screen.dart';
 import 'package:flutter/material.dart';
 
 import 'package:flutter_gen/gen_l10n/l10n.dart';
@@ -7,7 +9,6 @@ import 'package:go_router/go_router.dart';
 import 'package:matrix/matrix.dart' as sdk;
 import 'package:matrix/matrix.dart';
 
-import 'package:fluffychat/pages/new_group/new_group_view.dart';
 import 'package:fluffychat/utils/file_selector.dart';
 import 'package:fluffychat/widgets/matrix.dart';
 
@@ -23,10 +24,11 @@ class NewGroup extends StatefulWidget {
 }
 
 class NewGroupController extends State<NewGroup> {
-  TextEditingController nameController = TextEditingController();
+  final nameEditController = TextEditingController();
+  final descriptionEditController = TextEditingController();
 
-  bool publicGroup = false;
-  bool groupCanBeFound = false;
+  bool publicGroup = true;
+  bool groupCanBeFound = true;
 
   Uint8List? avatar;
 
@@ -49,6 +51,8 @@ class NewGroupController extends State<NewGroup> {
 
   void setGroupCanBeFound(bool b) => setState(() => groupCanBeFound = b);
 
+  var canGoNext = false;
+
   void selectPhoto() async {
     final photo = await selectFiles(
       context,
@@ -60,18 +64,21 @@ class NewGroupController extends State<NewGroup> {
     setState(() {
       avatarUrl = null;
       avatar = bytes;
+      checkCanContinue();
     });
   }
 
   Future<void> _createGroup() async {
     if (!mounted) return;
-    final roomId = await Matrix.of(context).client.createGroupChat(
+    // <thai.tran> here is custom method `createGroupChatWithDescription`
+    final roomId = await Matrix.of(context).client.createGroupChatWithDescription(
+      groupName: nameEditController.text,
+      groupDescription: descriptionEditController.text,
       visibility:
           groupCanBeFound ? sdk.Visibility.public : sdk.Visibility.private,
       preset: publicGroup
           ? sdk.CreateRoomPreset.publicChat
           : sdk.CreateRoomPreset.privateChat,
-      groupName: nameController.text.isNotEmpty ? nameController.text : null,
       initialState: [
         if (avatar != null)
           sdk.StateEvent(
@@ -93,9 +100,9 @@ class NewGroupController extends State<NewGroup> {
           creationContent: {'type': RoomCreationTypes.mSpace},
           visibility: publicGroup ? sdk.Visibility.public : null,
           roomAliasName: publicGroup
-              ? nameController.text.trim().toLowerCase().replaceAll(' ', '_')
+              ? nameEditController.text.trim().toLowerCase().replaceAll(' ', '_')
               : null,
-          name: nameController.text.trim(),
+          name: nameEditController.text.trim(),
           powerLevelContentOverride: {'events_default': 100},
           initialState: [
             if (avatar != null)
@@ -109,11 +116,18 @@ class NewGroupController extends State<NewGroup> {
     context.pop<String>(spaceId);
   }
 
-  void submitAction([_]) async {
+  checkCanContinue() {
+    setState(() {
+      canGoNext = nameEditController.text.isNotEmpty
+          && descriptionEditController.text.isNotEmpty
+          && (avatar != null || avatarUrl != null);
+    });
+  }
+  Future submitAction([_]) async {
     final client = Matrix.of(context).client;
 
     try {
-      if (nameController.text.trim().isEmpty &&
+      if (nameEditController.text.trim().isEmpty &&
           createGroupType == CreateGroupType.space) {
         setState(() => error = L10n.of(context).pleaseFillOut);
         return;
@@ -145,7 +159,7 @@ class NewGroupController extends State<NewGroup> {
   }
 
   @override
-  Widget build(BuildContext context) => NewGroupView(this);
+  Widget build(BuildContext context) => NewGroupScreen(this) /*NewGroupView(this)*/;
 }
 
 enum CreateGroupType { group, space }

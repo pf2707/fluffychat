@@ -1,5 +1,6 @@
 import 'dart:developer';
 
+import 'package:fluffychat/widgets/matrix.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
@@ -28,6 +29,15 @@ extension LocalizedBody on Event {
     inspect(matrixFile);
 
     matrixFile.result?.share(context);
+  }
+
+  void shareFileDirectly(BuildContext context, MatrixFile file) async {
+    inspect(file);
+    file.share(context);
+  }
+
+  void saveFileDirectly(BuildContext context, MatrixFile file) async {
+    file.save(context);
   }
 
   bool get isAttachmentSmallEnough =>
